@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AiStudioRouteImport } from './routes/ai-studio'
 import { Route as ApiAccessRouteImport } from './routes/api-access'
 import { Route as ModelsRouteImport } from './routes/models'
+import { Route as PricingRouteImport } from './routes/pricing'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,18 +35,25 @@ const ModelsRoute = ModelsRouteImport.update({
   path: '/models',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ai-studio': typeof AiStudioRoute
   '/api-access': typeof ApiAccessRoute
   '/models': typeof ModelsRoute
+  '/pricing': typeof PricingRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ai-studio': typeof AiStudioRoute
   '/api-access': typeof ApiAccessRoute
   '/models': typeof ModelsRoute
+  '/pricing': typeof PricingRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,14 @@ export interface FileRoutesById {
   '/ai-studio': typeof AiStudioRoute
   '/api-access': typeof ApiAccessRoute
   '/models': typeof ModelsRoute
+  '/pricing': typeof PricingRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/ai-studio' | '/api-access' | '/models'
+  fullPaths: '/' | '/ai-studio' | '/api-access' | '/models' | '/pricing'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/ai-studio' | '/api-access' | '/models'
-  id: '__root__' | '/' | '/ai-studio' | '/api-access' | '/models'
+  to: '/' | '/ai-studio' | '/api-access' | '/models' | '/pricing'
+  id: '__root__' | '/' | '/ai-studio' | '/api-access' | '/models' | '/pricing'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +76,7 @@ export interface RootRouteChildren {
   AiStudioRoute: typeof AiStudioRoute
   ApiAccessRoute: typeof ApiAccessRoute
   ModelsRoute: typeof ModelsRoute
+  PricingRoute: typeof PricingRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -99,6 +109,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ModelsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -107,6 +124,7 @@ const rootRouteChildren: RootRouteChildren = {
   AiStudioRoute: AiStudioRoute,
   ApiAccessRoute: ApiAccessRoute,
   ModelsRoute: ModelsRoute,
+  PricingRoute: PricingRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
