@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AiStudioRouteImport } from './routes/ai-studio'
 import { Route as ApiAccessRouteImport } from './routes/api-access'
+import { Route as DeployRouteImport } from './routes/deploy'
 import { Route as ModelsRouteImport } from './routes/models'
 import { Route as PricingRouteImport } from './routes/pricing'
 
@@ -30,6 +31,11 @@ const ApiAccessRoute = ApiAccessRouteImport.update({
   path: '/api-access',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DeployRoute = DeployRouteImport.update({
+  id: '/deploy',
+  path: '/deploy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ModelsRoute = ModelsRouteImport.update({
   id: '/models',
   path: '/models',
@@ -45,6 +51,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ai-studio': typeof AiStudioRoute
   '/api-access': typeof ApiAccessRoute
+  '/deploy': typeof DeployRoute
   '/models': typeof ModelsRoute
   '/pricing': typeof PricingRoute
 }
@@ -52,6 +59,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ai-studio': typeof AiStudioRoute
   '/api-access': typeof ApiAccessRoute
+  '/deploy': typeof DeployRoute
   '/models': typeof ModelsRoute
   '/pricing': typeof PricingRoute
 }
@@ -60,21 +68,31 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/ai-studio': typeof AiStudioRoute
   '/api-access': typeof ApiAccessRoute
+  '/deploy': typeof DeployRoute
   '/models': typeof ModelsRoute
   '/pricing': typeof PricingRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/ai-studio' | '/api-access' | '/models' | '/pricing'
+  fullPaths:
+    '/' | '/ai-studio' | '/api-access' | '/deploy' | '/models' | '/pricing'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/ai-studio' | '/api-access' | '/models' | '/pricing'
-  id: '__root__' | '/' | '/ai-studio' | '/api-access' | '/models' | '/pricing'
+  to: '/' | '/ai-studio' | '/api-access' | '/deploy' | '/models' | '/pricing'
+  id:
+    | '__root__'
+    | '/'
+    | '/ai-studio'
+    | '/api-access'
+    | '/deploy'
+    | '/models'
+    | '/pricing'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AiStudioRoute: typeof AiStudioRoute
   ApiAccessRoute: typeof ApiAccessRoute
+  DeployRoute: typeof DeployRoute
   ModelsRoute: typeof ModelsRoute
   PricingRoute: typeof PricingRoute
 }
@@ -102,6 +120,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAccessRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/deploy': {
+      id: '/deploy'
+      path: '/deploy'
+      fullPath: '/deploy'
+      preLoaderRoute: typeof DeployRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/models': {
       id: '/models'
       path: '/models'
@@ -123,6 +148,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AiStudioRoute: AiStudioRoute,
   ApiAccessRoute: ApiAccessRoute,
+  DeployRoute: DeployRoute,
   ModelsRoute: ModelsRoute,
   PricingRoute: PricingRoute,
 }
