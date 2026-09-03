@@ -22,7 +22,7 @@ export function SiteNav() {
             <Boxes className="size-4" />
           </span>
           <span className="font-display text-[15px] font-semibold tracking-tight">
-            API MART
+            API FLOW
           </span>
         </Link>
 

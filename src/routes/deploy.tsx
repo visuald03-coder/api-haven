@@ -8,13 +8,13 @@ import { Badge } from "@/components/ui/badge";
 export const Route = createFileRoute("/deploy")({
   head: () => ({
     meta: [
-      { title: "私有化部署 · 数据不出内网的 AI 网关 | API MART" },
+      { title: "私有化部署 · 数据不出内网的 AI 网关 | API FLOW" },
       {
         name: "description",
         content:
           "支持 VPC 专属、混合云与全离线三种交付形态，兼容国产算力，提供 SSO、审计与合规文档，两周内上线。",
       },
-      { property: "og:title", content: "私有化部署 · API MART" },
+      { property: "og:title", content: "私有化部署 · API FLOW" },
       { property: "og:description", content: "VPC、混合云与全离线交付，数据不出内网的 AI 网关。" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -106,7 +106,7 @@ function DeployPage() {
           <div className="grid gap-4 md:grid-cols-3">
             {[
               ["你的业务系统", ["Web / App", "内部工单", "数据平台"]],
-              ["API MART 网关（内网）", ["路由与鉴权", "配额与审计", "缓存与重试"]],
+              ["API FLOW 网关（内网）", ["路由与鉴权", "配额与审计", "缓存与重试"]],
               ["模型算力层", ["本地开源模型", "国产芯片集群", "白名单外部厂商"]],
             ].map(([title, items]) => (
               <div key={title as string} className="rounded-xl border border-border bg-card p-5 shadow-paper">

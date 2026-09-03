@@ -8,13 +8,13 @@ import { Badge } from "@/components/ui/badge";
 export const Route = createFileRoute("/pricing")({
   head: () => ({
     meta: [
-      { title: "价格 · 按量计费，无最低消费 | API MART" },
+      { title: "价格 · 按量计费，无最低消费 | API FLOW" },
       {
         name: "description",
         content:
           "免费额度起步，按 token 实际用量结算。团队版提供预付折扣、SLA 与专属通道，企业版支持私有化与合同结算。",
       },
-      { property: "og:title", content: "价格 · API MART" },
+      { property: "og:title", content: "价格 · API FLOW" },
       { property: "og:description", content: "按量计费，无最低消费，团队与企业版可享预付折扣与 SLA。" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

@@ -28,7 +28,7 @@ export function SiteFooter() {
             <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
               <Boxes className="size-4" />
             </span>
-            <span className="font-display text-[15px] font-semibold">API MART</span>
+            <span className="font-display text-[15px] font-semibold">API FLOW</span>
           </div>
           <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
             一个统一网关，聚合全球大模型与 AI 能力。按量计费、企业级稳定、支持私有化交付。
@@ -59,7 +59,7 @@ export function SiteFooter() {
       </div>
       <div className="border-t border-border/70 px-5 py-5">
         <p className="mx-auto max-w-6xl text-xs text-muted-foreground">
-          © 2026 API MART · 本页为演示原型
+          © 2026 API FLOW · 本页为演示原型
         </p>
       </div>
     </footer>

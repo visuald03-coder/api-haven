@@ -18,13 +18,13 @@ import { Textarea } from "@/components/ui/textarea";
 export const Route = createFileRoute("/ai-studio")({
   head: () => ({
     meta: [
-      { title: "AI 能力 · 生图、语音、文档解析开箱即用 | API MART" },
+      { title: "AI 能力 · 生图、语音、文档解析开箱即用 | API FLOW" },
       {
         name: "description",
         content:
           "封装好的 AI Skill：文生图、图像编辑、语音转写、文档解析、视频生成与工作流编排，一个接口直接调用。",
       },
-      { property: "og:title", content: "AI 能力 · API MART" },
+      { property: "og:title", content: "AI 能力 · API FLOW" },
       { property: "og:description", content: "生图、语音、文档解析等 AI Skill，一个接口直接调用。" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

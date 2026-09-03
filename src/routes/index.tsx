@@ -16,13 +16,13 @@ import { Badge } from "@/components/ui/badge";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "API MART · 统一网关聚合 200+ 大模型与 AI 能力" },
+      { title: "API FLOW · 统一网关聚合 200+ 大模型与 AI 能力" },
       {
         name: "description",
         content:
           "一个兼容 OpenAI 协议的网关，聚合 200+ 大模型、生图与语音等 AI Skill，按量计费，并支持私有化部署。",
       },
-      { property: "og:title", content: "API MART · 统一 AI 网关" },
+      { property: "og:title", content: "API FLOW · 统一 AI 网关" },
       {
         property: "og:description",
         content: "聚合 200+ 大模型与 AI 能力，一行改动接入，支持私有化部署。",
@@ -92,7 +92,7 @@ function Home() {
             所有账单，一张表
           </h1>
           <p className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground">
-            API MART 把 200+ 大模型、生图与语音能力收进同一套协议、同一份配额、同一个控制台。
+            API FLOW 把 200+ 大模型、生图与语音能力收进同一套协议、同一份配额、同一个控制台。
             公有网关按量付费，也可以整套搬进你的内网。
           </p>
           <div className="mt-9 flex flex-wrap gap-3">

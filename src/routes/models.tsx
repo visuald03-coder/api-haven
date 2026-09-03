@@ -9,13 +9,13 @@ import { Badge } from "@/components/ui/badge";
 export const Route = createFileRoute("/models")({
   head: () => ({
     meta: [
-      { title: "模型广场 · 200+ 大模型统一比价 | API MART" },
+      { title: "模型广场 · 200+ 大模型统一比价 | API FLOW" },
       {
         name: "description",
         content:
           "对比 GPT、Claude、Gemini、DeepSeek、Qwen 等 200+ 模型的上下文、能力标签与每百万 token 价格，一键切换。",
       },
-      { property: "og:title", content: "模型广场 · API MART" },
+      { property: "og:title", content: "模型广场 · API FLOW" },
       { property: "og:description", content: "200+ 大模型的能力与价格，一处对比一键切换。" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
