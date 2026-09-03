@@ -8,13 +8,13 @@ import { Badge } from "@/components/ui/badge";
 export const Route = createFileRoute("/api-access")({
   head: () => ({
     meta: [
-      { title: "API 接入 · 一行改动切换全球模型 | API MART" },
+      { title: "API 接入 · 一行改动切换全球模型 | API FLOW" },
       {
         name: "description",
         content:
           "兼容 OpenAI 协议的统一网关：替换 base_url 即可接入 200+ 模型，支持流式、函数调用、多密钥与用量配额。",
       },
-      { property: "og:title", content: "API 接入 · API MART" },
+      { property: "og:title", content: "API 接入 · API FLOW" },
       {
         property: "og:description",
         content: "兼容 OpenAI 协议的统一网关，一行改动接入 200+ 模型。",
@@ -27,7 +27,7 @@ export const Route = createFileRoute("/api-access")({
 });
 
 const snippets = {
-  curl: `curl https://api.apimart.dev/v1/chat/completions \\
+  curl: `curl https://api.apiflow.dev/v1/chat/completions \\
   -H "Authorization: Bearer $APIMART_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -39,7 +39,7 @@ const snippets = {
 
 client = OpenAI(
     api_key=os.environ["APIMART_KEY"],
-    base_url="https://api.apimart.dev/v1",  # 只改这一行
+    base_url="https://api.apiflow.dev/v1",  # 只改这一行
 )
 
 resp = client.chat.completions.create(
@@ -51,7 +51,7 @@ print(resp.choices[0].message.content)`,
 
 const client = new OpenAI({
   apiKey: process.env.APIMART_KEY,
-  baseURL: "https://api.apimart.dev/v1",
+  baseURL: "https://api.apiflow.dev/v1",
 });
 
 const stream = await client.chat.completions.create({
@@ -111,7 +111,7 @@ function ApiAccessPage() {
             接住你所有模型调用
           </>
         }
-        description="不用为每家厂商维护一套 SDK、一份密钥和一套计费。替换 base_url，剩下的路由、重试、配额和账单都交给 API MART。"
+        description="不用为每家厂商维护一套 SDK、一份密钥和一套计费。替换 base_url，剩下的路由、重试、配额和账单都交给 API FLOW。"
       >
         <div className="flex flex-wrap gap-3">
           <Button size="lg">获取 API Key</Button>

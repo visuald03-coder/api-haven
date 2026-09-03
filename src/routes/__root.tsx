@@ -80,9 +80,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "API MART · 统一 AI 网关" },
+      { title: "API FLOW · 统一 AI 网关" },
       { name: "description", content: "聚合 200+ 大模型与 AI 能力的统一网关。" },
-      { property: "og:title", content: "API MART · 统一 AI 网关" },
+      { property: "og:title", content: "API FLOW · 统一 AI 网关" },
       { property: "og:description", content: "聚合 200+ 大模型与 AI 能力的统一网关。" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
