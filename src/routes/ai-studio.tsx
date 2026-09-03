@@ -1,19 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
 import {
   Image as ImageIcon,
   FileText,
   Mic,
   ScanText,
+  Palette,
+  Scissors,
+  Music2,
+  Languages,
+  Presentation,
   Sparkles,
   Video,
-  Wand2,
   Workflow,
 } from "lucide-react";
 import { PageHeader, Section } from "@/components/section";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
 
 export const Route = createFileRoute("/ai-studio")({
   head: () => ({
@@ -78,15 +80,58 @@ const skills = [
   },
 ];
 
-const presets = [
-  "一张米白色纸质质感的产品海报，正中一枚铜色徽章",
-  "把这张照片的背景换成清晨的落地窗，保持人物光影一致",
-  "为这份 30 页的招股书生成中文摘要与风险清单",
+const practical = [
+  {
+    icon: Palette,
+    name: "审美提升 Skill",
+    endpoint: "aesthetic-boost",
+    desc: "给一张草稿图或界面截图，自动重排构图、统一配色与字体层级，输出更高级的版本。设计不及格的图也能救回来。",
+    stat: "平均美学分 +32%",
+    tags: ["构图", "配色", "版式"],
+  },
+  {
+    icon: Scissors,
+    name: "视频混剪 Skill",
+    endpoint: "video-remix",
+    desc: "丢进一批素材和一句主题，自动挑高光片段、卡点剪辑、加转场与字幕，直出竖版或横版成片。",
+    stat: "10 分钟素材 → 45 秒成片",
+    tags: ["卡点", "字幕", "竖版"],
+  },
+  {
+    icon: Presentation,
+    name: "一句话成稿 Skill",
+    endpoint: "deck-writer",
+    desc: "一句需求生成结构化 PPT / 图文稿：大纲、文案、配图提示词一并给全，可导出 PPTX 与 Markdown。",
+    stat: "支持 PPTX 导出",
+    tags: ["大纲", "配图", "导出"],
+  },
+  {
+    icon: Music2,
+    name: "口播配音 Skill",
+    endpoint: "voice-over",
+    desc: "文稿自动断句、加停顿与情绪，配上克隆音色生成口播音频，并输出对齐好的字幕轨。",
+    stat: "12 种情绪风格",
+    tags: ["情绪", "字幕轨"],
+  },
+  {
+    icon: Languages,
+    name: "本地化 Skill",
+    endpoint: "localize",
+    desc: "整站文案、视频字幕、图内文字一起翻译并回填，保留术语表与占位符，不破坏排版。",
+    stat: "32 种语言",
+    tags: ["术语表", "图内文字"],
+  },
+  {
+    icon: Sparkles,
+    name: "商品图美化 Skill",
+    endpoint: "product-shot",
+    desc: "手机随手拍的实物图，换背景、补光影、生成多尺寸主图与详情图，直接上架电商平台。",
+    stat: "一次出 6 个尺寸",
+    tags: ["电商", "多尺寸"],
+  },
 ];
 
 function AiStudioPage() {
-  const [prompt, setPrompt] = useState(presets[0]);
-
   return (
     <>
       <PageHeader
@@ -96,7 +141,7 @@ function AiStudioPage() {
       >
         <div className="flex flex-wrap gap-3">
           <Button size="lg">
-            <Sparkles className="mr-1.5 size-4" /> 打开在线体验台
+            <Sparkles className="mr-1.5 size-4" /> 查看全部 Skill
           </Button>
           <Button size="lg" variant="outline">
             Skill 文档
@@ -104,54 +149,42 @@ function AiStudioPage() {
         </div>
       </PageHeader>
 
-      <Section title="在线体验台" description="原型演示：填提示词，看看请求会长什么样。">
-        <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
-          <div className="panel p-6">
-            <div className="flex items-center gap-2">
-              <Wand2 className="size-4 text-copper" />
-              <span className="text-sm font-medium">图像生成</span>
-              <Badge variant="secondary" className="ml-auto font-mono text-[11px]">
-                flux-2-pro
-              </Badge>
+      <Section
+        title="超实用 Skill 精选"
+        description="不是 demo 级的玩具，而是团队每天真的会调的那几个：把审美、剪辑、排版这些最费人的环节自动化。"
+      >
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {practical.map((s) => (
+            <div
+              key={s.name}
+              className="panel flex flex-col p-6 transition-all hover:-translate-y-0.5 hover:shadow-lift"
+            >
+              <div className="flex items-center justify-between">
+                <span className="flex size-9 items-center justify-center rounded-lg bg-copper-soft text-accent-foreground">
+                  <s.icon className="size-4" />
+                </span>
+                <Badge variant="secondary" className="text-[11px] font-normal">
+                  {s.stat}
+                </Badge>
+              </div>
+              <h3 className="mt-4 text-base font-semibold">{s.name}</h3>
+              <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">{s.desc}</p>
+              <code className="mt-4 block truncate rounded-md bg-surface-2 px-2.5 py-1.5 font-mono text-[11.5px] text-muted-foreground">
+                skill: {s.endpoint}
+              </code>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {s.tags.map((t) => (
+                  <Badge key={t} variant="outline" className="text-[11px] font-normal">
+                    {t}
+                  </Badge>
+                ))}
+              </div>
             </div>
-            <Textarea
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              rows={5}
-              className="mt-4 resize-none bg-surface"
-            />
-            <div className="mt-3 flex flex-wrap gap-2">
-              {presets.map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setPrompt(p)}
-                  className="rounded-full border border-border bg-surface px-3 py-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  {p.slice(0, 12)}…
-                </button>
-              ))}
-            </div>
-            <Button className="mt-5 w-full">生成</Button>
-          </div>
-
-          <div className="panel overflow-hidden">
-            <div className="border-b border-border bg-surface-2 px-4 py-2.5 font-mono text-xs text-muted-foreground">
-              request preview
-            </div>
-            <pre className="overflow-x-auto px-5 py-5 font-mono text-[12.5px] leading-relaxed text-foreground/85">
-              <code>{`POST /v1/images/generations
-{
-  "model": "flux-2-pro",
-  "prompt": "${prompt}",
-  "size": "1024x1024",
-  "n": 1
-}`}</code>
-            </pre>
-          </div>
+          ))}
         </div>
       </Section>
 
-      <Section title="能力清单">
+      <Section title="基础能力清单" description="所有 Skill 都建立在这几类原子能力之上。" className="pt-0">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {skills.map((s) => (
             <div key={s.name} className="panel flex flex-col p-6 transition-shadow hover:shadow-lift">
