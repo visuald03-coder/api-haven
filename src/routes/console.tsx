@@ -1,19 +1,45 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import {
-  Copy,
   Coins,
+  Copy,
+  Download,
   Eye,
   EyeOff,
   KeyRound,
   Plus,
   ReceiptText,
-  ScrollText,
+  RefreshCcw,
+  Search,
+  Trash2,
   TrendingUp,
+  Wallet,
 } from "lucide-react";
-import { PageHeader, Section } from "@/components/section";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Eyebrow } from "@/components/section";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/console")({
   head: () => ({
@@ -22,10 +48,13 @@ export const Route = createFileRoute("/console")({
       {
         name: "description",
         content:
-          "API FLOW 控制台：创建与轮换 API 密钥、查看积分余额与消耗趋势、逐条调用日志与充值账单，支持自助开票。",
+          "API FLOW 控制台：创建与轮换 API 密钥、设置每日积分上限、查看积分余额与消耗趋势、逐条调用日志与充值账单，支持自助开票。",
       },
       { property: "og:title", content: "控制台 · API FLOW" },
-      { property: "og:description", content: "密钥管理、积分消耗、消费日志与账单，一个控制台看全。" },
+      {
+        property: "og:description",
+        content: "密钥管理、积分消耗、消费日志与账单，一个控制台看全。",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -35,18 +64,60 @@ export const Route = createFileRoute("/console")({
 
 const fmt = (n: number) => n.toLocaleString("zh-CN");
 
-const stats = [
-  { icon: Coins, k: "可用积分", v: "1,284,600", note: "含赠送 204,000" },
-  { icon: TrendingUp, k: "今日消耗", v: "36,420", note: "较昨日 +12%" },
-  { icon: KeyRound, k: "活跃密钥", v: "4", note: "1 个仅测试环境" },
-  { icon: ReceiptText, k: "本月充值", v: "¥2,000", note: "2 笔已开票" },
-];
+type ApiKey = {
+  id: string;
+  name: string;
+  secret: string;
+  used: number;
+  dailyLimit: number | null;
+  created: string;
+  enabled: boolean;
+};
 
-const keys = [
-  { name: "生产环境", prefix: "sk-flow-9f2c", secret: "sk-flow-9f2c7a41b83de5602ab", used: 842_100, limit: "无限制", created: "2026-05-12", status: "启用" },
-  { name: "移动端", prefix: "sk-flow-4ab1", secret: "sk-flow-4ab1e07c92fd1188cc4", used: 216_540, limit: "300,000 / 日", created: "2026-06-30", status: "启用" },
-  { name: "内部工具", prefix: "sk-flow-77de", secret: "sk-flow-77de5b3a10c9ff2401d", used: 51_300, limit: "50,000 / 日", created: "2026-07-18", status: "限额中" },
-  { name: "旧版脚本", prefix: "sk-flow-1c05", secret: "sk-flow-1c0533ee8a7b9042fa6", used: 0, limit: "—", created: "2026-02-04", status: "已停用" },
+const randomSecret = () => {
+  const chars = "abcdef0123456789";
+  let s = "sk-flow-";
+  for (let i = 0; i < 24; i += 1) s += chars[Math.floor(Math.random() * chars.length)];
+  return s;
+};
+
+const initialKeys: ApiKey[] = [
+  {
+    id: "k1",
+    name: "生产环境",
+    secret: "sk-flow-9f2c7a41b83de5602ab19d47",
+    used: 842_100,
+    dailyLimit: null,
+    created: "2026-05-12",
+    enabled: true,
+  },
+  {
+    id: "k2",
+    name: "移动端",
+    secret: "sk-flow-4ab1e07c92fd1188cc4a3b06",
+    used: 216_540,
+    dailyLimit: 300_000,
+    created: "2026-06-30",
+    enabled: true,
+  },
+  {
+    id: "k3",
+    name: "内部工具",
+    secret: "sk-flow-77de5b3a10c9ff2401d8e552",
+    used: 51_300,
+    dailyLimit: 50_000,
+    created: "2026-07-18",
+    enabled: true,
+  },
+  {
+    id: "k4",
+    name: "旧版脚本",
+    secret: "sk-flow-1c0533ee8a7b9042fa61c7d0",
+    used: 0,
+    dailyLimit: null,
+    created: "2026-02-04",
+    enabled: false,
+  },
 ];
 
 const usageByModel = [
@@ -59,265 +130,677 @@ const usageByModel = [
 
 const trend = [28, 34, 31, 46, 52, 44, 61, 58, 72, 65, 80, 74, 91, 86];
 
-const logs = [
-  { time: "09:41:22", key: "生产环境", model: "gpt-5.1", type: "对话", tokens: "1,240 → 780", credits: 3_580, status: "成功" },
-  { time: "09:40:58", key: "移动端", model: "flux-2-pro", type: "生图", tokens: "1 张", credits: 35, status: "成功" },
-  { time: "09:39:04", key: "生产环境", model: "aesthetic-boost", type: "Skill", tokens: "3 张", credits: 135, status: "成功" },
-  { time: "09:36:17", key: "内部工具", model: "deepseek-v4", type: "对话", tokens: "8,600 → 2,100", credits: 1_490, status: "成功" },
-  { time: "09:33:41", key: "生产环境", model: "video-remix", type: "Skill", tokens: "1 条 45s", credits: 180, status: "处理中" },
-  { time: "09:30:02", key: "移动端", model: "claude-4.5-sonnet", type: "对话", tokens: "2,300 → 0", credits: 0, status: "限流" },
+type LogRow = {
+  id: string;
+  time: string;
+  key: string;
+  model: string;
+  type: "对话" | "生图" | "Skill";
+  usage: string;
+  latency: string;
+  credits: number;
+  status: "成功" | "处理中" | "限流" | "失败";
+  note?: string;
+};
+
+const allLogs: LogRow[] = [
+  { id: "l1", time: "09:41:22", key: "生产环境", model: "gpt-5.1", type: "对话", usage: "1,240 → 780", latency: "1.2s", credits: 3_580, status: "成功" },
+  { id: "l2", time: "09:40:58", key: "移动端", model: "flux-2-pro", type: "生图", usage: "1 张 1024²", latency: "4.6s", credits: 35, status: "成功" },
+  { id: "l3", time: "09:39:04", key: "生产环境", model: "aesthetic-boost", type: "Skill", usage: "3 张", latency: "7.1s", credits: 135, status: "成功" },
+  { id: "l4", time: "09:36:17", key: "内部工具", model: "deepseek-v4", type: "对话", usage: "8,600 → 2,100", latency: "3.4s", credits: 1_490, status: "成功" },
+  { id: "l5", time: "09:33:41", key: "生产环境", model: "video-remix", type: "Skill", usage: "1 条 45s", latency: "—", credits: 180, status: "处理中" },
+  { id: "l6", time: "09:30:02", key: "移动端", model: "claude-4.5-sonnet", type: "对话", usage: "2,300 → 0", latency: "0.2s", credits: 0, status: "限流", note: "超出每日积分上限" },
+  { id: "l7", time: "09:24:55", key: "内部工具", model: "whisper-turbo", type: "Skill", usage: "12 分钟音频", latency: "9.8s", credits: 240, status: "成功" },
+  { id: "l8", time: "09:18:30", key: "生产环境", model: "gpt-5.1-mini", type: "对话", usage: "640 → 310", latency: "0.7s", credits: 210, status: "成功" },
+  { id: "l9", time: "09:11:07", key: "移动端", model: "flux-2-pro", type: "生图", usage: "4 张 1024²", latency: "—", credits: 0, status: "失败", note: "上游超时，已自动退还积分" },
+  { id: "l10", time: "09:02:44", key: "生产环境", model: "claude-4.5-sonnet", type: "对话", usage: "5,120 → 1,860", latency: "4.1s", credits: 2_740, status: "成功" },
 ];
 
-const bills = [
-  { no: "IN-2026-0731", date: "2026-07-31", item: "积分充值 · 推荐包", amount: "¥1,000", credits: 1_200_000, invoice: "已开票" },
-  { no: "IN-2026-0715", date: "2026-07-15", item: "积分充值 · 常用包", amount: "¥200", credits: 220_000, invoice: "已开票" },
-  { no: "IN-2026-0628", date: "2026-06-28", item: "积分充值 · 推荐包", amount: "¥1,000", credits: 1_200_000, invoice: "可开票" },
-  { no: "IN-2026-0602", date: "2026-06-02", item: "积分充值 · 自定义", amount: "¥300", credits: 330_000, invoice: "已开票" },
+type Bill = {
+  no: string;
+  date: string;
+  item: string;
+  amount: string;
+  credits: number;
+  invoiced: boolean;
+};
+
+const initialBills: Bill[] = [
+  { no: "IN-2026-0731", date: "2026-07-31", item: "积分充值 · 推荐包", amount: "¥1,000", credits: 1_200_000, invoiced: true },
+  { no: "IN-2026-0715", date: "2026-07-15", item: "积分充值 · 常用包", amount: "¥200", credits: 220_000, invoiced: true },
+  { no: "IN-2026-0628", date: "2026-06-28", item: "积分充值 · 推荐包", amount: "¥1,000", credits: 1_200_000, invoiced: false },
+  { no: "IN-2026-0602", date: "2026-06-02", item: "积分充值 · 自定义", amount: "¥300", credits: 330_000, invoiced: true },
 ];
 
-const statusTone: Record<string, string> = {
+const statusTone: Record<LogRow["status"], string> = {
   成功: "text-sage",
   处理中: "text-copper",
   限流: "text-destructive",
+  失败: "text-destructive",
 };
 
-function ConsolePage() {
-  const [revealed, setRevealed] = useState<string | null>(null);
-  const [copied, setCopied] = useState<string | null>(null);
+const rechargePacks = [
+  { amount: 100, credits: 105_000, tag: "体验" },
+  { amount: 200, credits: 220_000, tag: "常用" },
+  { amount: 1000, credits: 1_200_000, tag: "推荐" },
+  { amount: 5000, credits: 6_500_000, tag: "团队" },
+];
 
-  const copy = (k: (typeof keys)[number]) => {
-    void navigator.clipboard?.writeText(k.secret);
-    setCopied(k.prefix);
-    setTimeout(() => setCopied(null), 1500);
+const th =
+  "px-5 py-3 font-mono text-[11px] uppercase tracking-widest text-muted-foreground whitespace-nowrap";
+const td = "px-5 py-3.5";
+
+function ConsolePage() {
+  const [keys, setKeys] = useState<ApiKey[]>(initialKeys);
+  const [revealed, setRevealed] = useState<string | null>(null);
+  const [bills, setBills] = useState<Bill[]>(initialBills);
+  const [balance, setBalance] = useState(1_284_600);
+
+  // create key dialog
+  const [createOpen, setCreateOpen] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newLimit, setNewLimit] = useState("");
+
+  // recharge dialog
+  const [rechargeOpen, setRechargeOpen] = useState(false);
+  const [pack, setPack] = useState(1000);
+
+  // log filters
+  const [logKey, setLogKey] = useState("all");
+  const [logStatus, setLogStatus] = useState("all");
+  const [logQuery, setLogQuery] = useState("");
+
+  const copy = (value: string) => {
+    void navigator.clipboard?.writeText(value);
+    toast.success("已复制到剪贴板");
   };
+
+  const createKey = () => {
+    const name = newName.trim() || `密钥 ${keys.length + 1}`;
+    const limit = Number(newLimit.replace(/[^\d]/g, ""));
+    const key: ApiKey = {
+      id: `k${Date.now()}`,
+      name,
+      secret: randomSecret(),
+      used: 0,
+      dailyLimit: limit > 0 ? limit : null,
+      created: new Date().toISOString().slice(0, 10),
+      enabled: true,
+    };
+    setKeys((prev) => [key, ...prev]);
+    setRevealed(key.id);
+    setCreateOpen(false);
+    setNewName("");
+    setNewLimit("");
+    toast.success(`已创建「${name}」，请立即复制保存`);
+  };
+
+  const rotate = (id: string) => {
+    setKeys((prev) => prev.map((k) => (k.id === id ? { ...k, secret: randomSecret() } : k)));
+    setRevealed(id);
+    toast.success("密钥已轮换，旧密钥立即失效");
+  };
+
+  const remove = (id: string) => {
+    setKeys((prev) => prev.filter((k) => k.id !== id));
+    toast.success("密钥已删除");
+  };
+
+  const toggle = (id: string, enabled: boolean) => {
+    setKeys((prev) => prev.map((k) => (k.id === id ? { ...k, enabled } : k)));
+    toast.success(enabled ? "密钥已启用" : "密钥已停用");
+  };
+
+  const setLimit = (id: string, value: string) => {
+    const limit = Number(value.replace(/[^\d]/g, ""));
+    setKeys((prev) =>
+      prev.map((k) => (k.id === id ? { ...k, dailyLimit: limit > 0 ? limit : null } : k)),
+    );
+  };
+
+  const recharge = () => {
+    const chosen = rechargePacks.find((p) => p.amount === pack) ?? rechargePacks[2]!;
+    setBalance((b) => b + chosen.credits);
+    setBills((prev) => [
+      {
+        no: `IN-2026-${String(prev.length + 8).padStart(4, "0")}`,
+        date: new Date().toISOString().slice(0, 10),
+        item: `积分充值 · ${chosen.tag}包`,
+        amount: `¥${fmt(chosen.amount)}`,
+        credits: chosen.credits,
+        invoiced: false,
+      },
+      ...prev,
+    ]);
+    setRechargeOpen(false);
+    toast.success(`充值成功，到账 ${fmt(chosen.credits)} 积分`);
+  };
+
+  const filteredLogs = useMemo(
+    () =>
+      allLogs.filter(
+        (l) =>
+          (logKey === "all" || l.key === logKey) &&
+          (logStatus === "all" || l.status === logStatus) &&
+          (logQuery.trim() === "" || l.model.includes(logQuery.trim().toLowerCase())),
+      ),
+    [logKey, logStatus, logQuery],
+  );
+
+  const totalUsed = keys.reduce((s, k) => s + k.used, 0);
+  const activeKeys = keys.filter((k) => k.enabled).length;
+
+  const stats = [
+    { icon: Coins, k: "可用积分", v: fmt(balance), note: "含赠送 204,000" },
+    { icon: TrendingUp, k: "今日消耗", v: "36,420", note: "较昨日 +12%" },
+    { icon: KeyRound, k: "活跃密钥", v: `${activeKeys}`, note: `共 ${keys.length} 个` },
+    { icon: ReceiptText, k: "本月充值", v: "¥2,000", note: `${bills.filter((b) => b.invoiced).length} 笔已开票` },
+  ];
 
   return (
     <>
-      <PageHeader
-        eyebrow="Console"
-        title="你的密钥、积分与账单，一个页面看全"
-        description="控制台是账户的唯一入口：创建与轮换密钥、设置每日限额、按模型看积分消耗、逐条查调用日志，并自助下载账单与发票。"
-      >
-        <div className="flex flex-wrap gap-3">
-          <Button size="lg">进入控制台</Button>
-          <Button size="lg" variant="outline">
-            <Plus className="mr-1.5 size-4" /> 充值积分
-          </Button>
+      {/* Console header */}
+      <section className="canvas-glow border-b border-border">
+        <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 pb-10 pt-12 md:flex-row md:items-end md:justify-between">
+          <div>
+            <Eyebrow>Console</Eyebrow>
+            <h1 className="mt-4 text-3xl font-semibold md:text-4xl">账户控制台</h1>
+            <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
+              zhang@studio.dev · 团队「Nebula Labs」 · 密钥、积分、日志与账单都在这里操作。
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="rounded-xl border border-border bg-card px-4 py-3 shadow-paper">
+              <p className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+                余额
+              </p>
+              <p className="font-display text-xl font-semibold">{fmt(balance)}</p>
+            </div>
+            <Dialog open={rechargeOpen} onOpenChange={setRechargeOpen}>
+              <DialogTrigger asChild>
+                <Button size="lg">
+                  <Wallet className="mr-1.5 size-4" /> 充值积分
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>充值积分</DialogTitle>
+                  <DialogDescription>随充随用，积分永久有效，不设月费。</DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {rechargePacks.map((p) => (
+                    <button
+                      key={p.amount}
+                      onClick={() => setPack(p.amount)}
+                      className={cn(
+                        "rounded-lg border p-4 text-left transition-colors",
+                        pack === p.amount
+                          ? "border-copper bg-copper/5"
+                          : "border-border hover:bg-secondary",
+                      )}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-display text-lg font-semibold">¥{fmt(p.amount)}</span>
+                        <Badge variant="secondary" className="text-[11px] font-normal">
+                          {p.tag}
+                        </Badge>
+                      </div>
+                      <p className="mt-1.5 font-mono text-[12px] text-muted-foreground">
+                        到账 {fmt(p.credits)} 积分
+                      </p>
+                    </button>
+                  ))}
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setRechargeOpen(false)}>
+                    取消
+                  </Button>
+                  <Button onClick={recharge}>确认支付</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
-      </PageHeader>
+      </section>
 
-      <Section>
+      <div className="mx-auto max-w-6xl px-5 py-10">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((s) => (
-            <div key={s.k} className="panel p-6">
+            <div key={s.k} className="panel p-5">
               <s.icon className="size-4 text-copper" />
-              <p className="mt-4 font-display text-2xl font-semibold">{s.v}</p>
+              <p className="mt-3 font-display text-2xl font-semibold">{s.v}</p>
               <p className="mt-1 text-sm text-muted-foreground">{s.k}</p>
-              <p className="mt-2 font-mono text-[11px] text-muted-foreground">{s.note}</p>
+              <p className="mt-1.5 font-mono text-[11px] text-muted-foreground">{s.note}</p>
             </div>
           ))}
         </div>
-      </Section>
 
-      <Section
-        title="密钥管理"
-        description="按环境拆分密钥，单独设置每日积分上限，泄露时一键轮换不影响其他环境。"
-        className="pt-0"
-      >
-        <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-paper">
-          <table className="w-full min-w-[820px] text-sm">
-            <thead>
-              <tr className="border-b border-border bg-surface-2 text-left">
-                {["名称", "密钥", "已用积分", "每日上限", "创建时间", "状态", ""].map((h) => (
-                  <th
-                    key={h}
-                    className="px-5 py-3 font-mono text-[11px] uppercase tracking-widest text-muted-foreground"
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {keys.map((k) => (
-                <tr key={k.prefix} className="border-b border-border/70 last:border-0">
-                  <td className="px-5 py-3.5 font-medium">{k.name}</td>
-                  <td className="px-5 py-3.5">
-                    <div className="flex items-center gap-2">
-                      <code className="font-mono text-[12.5px] text-muted-foreground">
-                        {revealed === k.prefix ? k.secret : `${k.prefix}••••••••••••`}
-                      </code>
-                      <button
-                        aria-label="显示密钥"
-                        onClick={() => setRevealed((v) => (v === k.prefix ? null : k.prefix))}
-                        className="text-muted-foreground transition-colors hover:text-foreground"
-                      >
-                        {revealed === k.prefix ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
-                      </button>
-                      <button
-                        aria-label="复制密钥"
-                        onClick={() => copy(k)}
-                        className="text-muted-foreground transition-colors hover:text-foreground"
-                      >
-                        <Copy className="size-3.5" />
-                      </button>
-                      {copied === k.prefix && <span className="text-[11px] text-sage">已复制</span>}
+        <Tabs defaultValue="keys" className="mt-10">
+          <TabsList className="flex w-full flex-wrap justify-start">
+            <TabsTrigger value="keys">密钥管理</TabsTrigger>
+            <TabsTrigger value="usage">积分消耗</TabsTrigger>
+            <TabsTrigger value="logs">消费日志</TabsTrigger>
+            <TabsTrigger value="bills">账单与发票</TabsTrigger>
+          </TabsList>
+
+          {/* ---------------- Keys ---------------- */}
+          <TabsContent value="keys" className="mt-6">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm text-muted-foreground">
+                按环境拆分密钥，单独设置每日积分上限；泄露时一键轮换，不影响其他环境。
+              </p>
+              <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="mr-1.5 size-4" /> 新建密钥
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>新建 API 密钥</DialogTitle>
+                    <DialogDescription>
+                      密钥只在创建后完整展示一次，请立即复制保存。
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="key-name">名称</Label>
+                      <Input
+                        id="key-name"
+                        placeholder="例如：生产环境 / 移动端"
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                      />
                     </div>
-                  </td>
-                  <td className="px-5 py-3.5 font-mono text-[12.5px]">{fmt(k.used)}</td>
-                  <td className="px-5 py-3.5 text-muted-foreground">{k.limit}</td>
-                  <td className="px-5 py-3.5 font-mono text-[12.5px] text-muted-foreground">{k.created}</td>
-                  <td className="px-5 py-3.5">
-                    <Badge
-                      variant={k.status === "启用" ? "secondary" : "outline"}
-                      className="text-[11px] font-normal"
-                    >
-                      {k.status}
-                    </Badge>
-                  </td>
-                  <td className="px-5 py-3.5 text-right">
-                    <button className="text-xs text-muted-foreground transition-colors hover:text-copper">
-                      轮换
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <Button variant="outline" className="mt-4">
-          <Plus className="mr-1.5 size-4" /> 新建密钥
-        </Button>
-      </Section>
-
-      <Section title="积分消耗" description="近 14 天趋势与按模型拆分，异常增长可以立刻定位到哪个密钥。">
-        <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
-          <div className="panel p-6">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium">近 14 天消耗（千积分）</p>
-              <Badge variant="secondary" className="text-[11px] font-normal">
-                合计 1,161,700
-              </Badge>
+                    <div className="space-y-2">
+                      <Label htmlFor="key-limit">每日积分上限（留空为不限制）</Label>
+                      <Input
+                        id="key-limit"
+                        inputMode="numeric"
+                        placeholder="300000"
+                        value={newLimit}
+                        onChange={(e) => setNewLimit(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setCreateOpen(false)}>
+                      取消
+                    </Button>
+                    <Button onClick={createKey}>创建</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
-            <div className="mt-6 flex h-40 items-end gap-2">
-              {trend.map((v, i) => (
-                <div
-                  key={i}
-                  className="flex-1 rounded-t-sm bg-copper/70 transition-colors hover:bg-copper"
-                  style={{ height: `${v}%` }}
-                  title={`${v} 千积分`}
+
+            <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-paper">
+              <table className="w-full min-w-[900px] text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-surface-2 text-left">
+                    {["名称", "密钥", "已用积分", "每日上限", "创建时间", "启用", "操作"].map((h) => (
+                      <th key={h} className={th}>
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {keys.map((k) => (
+                    <tr key={k.id} className="border-b border-border/70 last:border-0">
+                      <td className={cn(td, "font-medium")}>{k.name}</td>
+                      <td className={td}>
+                        <div className="flex items-center gap-2">
+                          <code className="font-mono text-[12.5px] text-muted-foreground">
+                            {revealed === k.id
+                              ? k.secret
+                              : `${k.secret.slice(0, 12)}••••••••••••`}
+                          </code>
+                          <button
+                            aria-label="显示密钥"
+                            onClick={() => setRevealed((v) => (v === k.id ? null : k.id))}
+                            className="text-muted-foreground transition-colors hover:text-foreground"
+                          >
+                            {revealed === k.id ? (
+                              <EyeOff className="size-3.5" />
+                            ) : (
+                              <Eye className="size-3.5" />
+                            )}
+                          </button>
+                          <button
+                            aria-label="复制密钥"
+                            onClick={() => copy(k.secret)}
+                            className="text-muted-foreground transition-colors hover:text-foreground"
+                          >
+                            <Copy className="size-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                      <td className={cn(td, "font-mono text-[12.5px]")}>{fmt(k.used)}</td>
+                      <td className={td}>
+                        <Input
+                          value={k.dailyLimit ? String(k.dailyLimit) : ""}
+                          placeholder="不限制"
+                          onChange={(e) => setLimit(k.id, e.target.value)}
+                          className="h-8 w-28 font-mono text-[12.5px]"
+                        />
+                      </td>
+                      <td className={cn(td, "font-mono text-[12.5px] text-muted-foreground")}>
+                        {k.created}
+                      </td>
+                      <td className={td}>
+                        <Switch
+                          checked={k.enabled}
+                          onCheckedChange={(v) => toggle(k.id, v)}
+                          aria-label="启用密钥"
+                        />
+                      </td>
+                      <td className={cn(td, "text-right")}>
+                        <div className="flex items-center justify-end gap-3">
+                          <button
+                            onClick={() => rotate(k.id)}
+                            className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-copper"
+                          >
+                            <RefreshCcw className="size-3.5" /> 轮换
+                          </button>
+                          <button
+                            onClick={() => remove(k.id)}
+                            className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-destructive"
+                          >
+                            <Trash2 className="size-3.5" /> 删除
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {keys.length === 0 && (
+                    <tr>
+                      <td colSpan={7} className="px-5 py-10 text-center text-sm text-muted-foreground">
+                        还没有密钥，点击「新建密钥」开始接入。
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <p className="mt-3 font-mono text-[11px] text-muted-foreground">
+              全部密钥累计消耗 {fmt(totalUsed)} 积分
+            </p>
+          </TabsContent>
+
+          {/* ---------------- Usage ---------------- */}
+          <TabsContent value="usage" className="mt-6">
+            <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
+              <div className="panel p-6">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium">近 14 天消耗（千积分）</p>
+                  <Badge variant="secondary" className="text-[11px] font-normal">
+                    合计 1,161,700
+                  </Badge>
+                </div>
+                <div className="mt-6 flex h-40 items-end gap-2">
+                  {trend.map((v, i) => (
+                    <div
+                      key={i}
+                      className="flex-1 rounded-t-sm bg-copper/70 transition-colors hover:bg-copper"
+                      style={{ height: `${v}%` }}
+                      title={`${v} 千积分`}
+                    />
+                  ))}
+                </div>
+                <div className="mt-2 flex justify-between font-mono text-[11px] text-muted-foreground">
+                  <span>14 天前</span>
+                  <span>今天</span>
+                </div>
+              </div>
+
+              <div className="panel p-6">
+                <p className="text-sm font-medium">按模型 / Skill 拆分</p>
+                <ul className="mt-5 space-y-4">
+                  {usageByModel.map((u) => (
+                    <li key={u.model}>
+                      <div className="flex items-baseline justify-between text-sm">
+                        <span className="font-mono text-[12.5px]">{u.model}</span>
+                        <span className="text-muted-foreground">
+                          {fmt(u.credits)} · {u.share}%
+                        </span>
+                      </div>
+                      <div className="mt-1.5 h-1.5 rounded-full bg-surface-2">
+                        <div
+                          className="h-full rounded-full bg-copper"
+                          style={{ width: `${u.share * 2}%` }}
+                        />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-4 sm:grid-cols-3">
+              {[
+                { k: "低余额提醒", v: "余额低于 100,000 积分时邮件通知", on: true },
+                { k: "日消耗超限提醒", v: "单日超过 80,000 积分时通知", on: true },
+                { k: "失败率告警", v: "5 分钟内失败率超 5% 时通知", on: false },
+              ].map((a) => (
+                <div key={a.k} className="panel flex items-start justify-between gap-4 p-5">
+                  <div>
+                    <p className="text-sm font-medium">{a.k}</p>
+                    <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{a.v}</p>
+                  </div>
+                  <Switch defaultChecked={a.on} aria-label={a.k} />
+                </div>
+              ))}
+            </div>
+          </TabsContent>
+
+          {/* ---------------- Logs ---------------- */}
+          <TabsContent value="logs" className="mt-6">
+            <div className="mb-4 flex flex-wrap items-center gap-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={logQuery}
+                  onChange={(e) => setLogQuery(e.target.value)}
+                  placeholder="搜索模型 / Skill"
+                  className="h-9 w-56 pl-9"
                 />
-              ))}
+              </div>
+              <Select value={logKey} onValueChange={setLogKey}>
+                <SelectTrigger className="h-9 w-40">
+                  <SelectValue placeholder="全部密钥" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">全部密钥</SelectItem>
+                  {[...new Set(allLogs.map((l) => l.key))].map((k) => (
+                    <SelectItem key={k} value={k}>
+                      {k}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={logStatus} onValueChange={setLogStatus}>
+                <SelectTrigger className="h-9 w-32">
+                  <SelectValue placeholder="全部状态" />
+                </SelectTrigger>
+                <SelectContent>
+                  {["all", "成功", "处理中", "限流", "失败"].map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s === "all" ? "全部状态" : s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline"
+                size="sm"
+                className="ml-auto"
+                onClick={() => toast.success(`已导出 ${filteredLogs.length} 条日志 CSV`)}
+              >
+                <Download className="mr-1.5 size-4" /> 导出 CSV
+              </Button>
             </div>
-            <div className="mt-2 flex justify-between font-mono text-[11px] text-muted-foreground">
-              <span>14 天前</span>
-              <span>今天</span>
-            </div>
-          </div>
 
-          <div className="panel p-6">
-            <p className="text-sm font-medium">按模型 / Skill 拆分</p>
-            <ul className="mt-5 space-y-4">
-              {usageByModel.map((u) => (
-                <li key={u.model}>
-                  <div className="flex items-baseline justify-between text-sm">
-                    <span className="font-mono text-[12.5px]">{u.model}</span>
-                    <span className="text-muted-foreground">
-                      {fmt(u.credits)} · {u.share}%
-                    </span>
-                  </div>
-                  <div className="mt-1.5 h-1.5 rounded-full bg-surface-2">
-                    <div className="h-full rounded-full bg-copper" style={{ width: `${u.share * 2}%` }} />
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </Section>
-
-      <Section
-        title="消费日志"
-        description="每一次调用都留痕：耗时、token、扣减积分与失败原因，可按密钥、模型、时间筛选并导出 CSV。"
-        className="pt-0"
-      >
-        <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-paper">
-          <table className="w-full min-w-[760px] text-sm">
-            <thead>
-              <tr className="border-b border-border bg-surface-2 text-left">
-                {["时间", "密钥", "模型 / Skill", "类型", "用量", "扣减积分", "状态"].map((h) => (
-                  <th
-                    key={h}
-                    className="px-5 py-3 font-mono text-[11px] uppercase tracking-widest text-muted-foreground"
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {logs.map((l) => (
-                <tr key={l.time} className="border-b border-border/70 last:border-0">
-                  <td className="px-5 py-3.5 font-mono text-[12.5px] text-muted-foreground">{l.time}</td>
-                  <td className="px-5 py-3.5">{l.key}</td>
-                  <td className="px-5 py-3.5 font-mono text-[12.5px]">{l.model}</td>
-                  <td className="px-5 py-3.5 text-muted-foreground">{l.type}</td>
-                  <td className="px-5 py-3.5 font-mono text-[12.5px] text-muted-foreground">{l.tokens}</td>
-                  <td className="px-5 py-3.5 font-mono text-[12.5px]">{fmt(l.credits)}</td>
-                  <td className={`px-5 py-3.5 ${statusTone[l.status] ?? ""}`}>{l.status}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <div className="mt-4 flex flex-wrap gap-3">
-          <Button variant="outline" size="sm">
-            <ScrollText className="mr-1.5 size-4" /> 导出 CSV
-          </Button>
-          <Button variant="ghost" size="sm">
-            查看全部日志
-          </Button>
-        </div>
-      </Section>
-
-      <Section title="账单与发票" description="充值即生成账单，支持自助开具电子发票与对公抬头管理。">
-        <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-paper">
-          <table className="w-full min-w-[720px] text-sm">
-            <thead>
-              <tr className="border-b border-border bg-surface-2 text-left">
-                {["账单号", "日期", "项目", "金额", "到账积分", "发票"].map((h) => (
-                  <th
-                    key={h}
-                    className="px-5 py-3 font-mono text-[11px] uppercase tracking-widest text-muted-foreground"
-                  >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {bills.map((b) => (
-                <tr key={b.no} className="border-b border-border/70 last:border-0">
-                  <td className="px-5 py-3.5 font-mono text-[12.5px]">{b.no}</td>
-                  <td className="px-5 py-3.5 font-mono text-[12.5px] text-muted-foreground">{b.date}</td>
-                  <td className="px-5 py-3.5">{b.item}</td>
-                  <td className="px-5 py-3.5 font-medium">{b.amount}</td>
-                  <td className="px-5 py-3.5 font-mono text-[12.5px] text-muted-foreground">
-                    {fmt(b.credits)}
-                  </td>
-                  <td className="px-5 py-3.5">
-                    {b.invoice === "已开票" ? (
-                      <span className="text-sage">已开票</span>
-                    ) : (
-                      <button className="text-copper transition-opacity hover:opacity-70">申请开票</button>
+            <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-paper">
+              <table className="w-full min-w-[880px] text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-surface-2 text-left">
+                    {["时间", "密钥", "模型 / Skill", "类型", "用量", "耗时", "扣减积分", "状态"].map(
+                      (h) => (
+                        <th key={h} className={th}>
+                          {h}
+                        </th>
+                      ),
                     )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Section>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredLogs.map((l) => (
+                    <tr key={l.id} className="border-b border-border/70 last:border-0">
+                      <td className={cn(td, "font-mono text-[12.5px] text-muted-foreground")}>
+                        {l.time}
+                      </td>
+                      <td className={td}>{l.key}</td>
+                      <td className={cn(td, "font-mono text-[12.5px]")}>{l.model}</td>
+                      <td className={cn(td, "text-muted-foreground")}>{l.type}</td>
+                      <td className={cn(td, "font-mono text-[12.5px] text-muted-foreground")}>
+                        {l.usage}
+                      </td>
+                      <td className={cn(td, "font-mono text-[12.5px] text-muted-foreground")}>
+                        {l.latency}
+                      </td>
+                      <td className={cn(td, "font-mono text-[12.5px]")}>{fmt(l.credits)}</td>
+                      <td className={cn(td, statusTone[l.status])}>
+                        {l.status}
+                        {l.note ? (
+                          <span className="ml-1.5 text-[11px] text-muted-foreground">{l.note}</span>
+                        ) : null}
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredLogs.length === 0 && (
+                    <tr>
+                      <td colSpan={8} className="px-5 py-10 text-center text-sm text-muted-foreground">
+                        没有符合条件的记录。
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </TabsContent>
+
+          {/* ---------------- Bills ---------------- */}
+          <TabsContent value="bills" className="mt-6">
+            <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-paper">
+              <table className="w-full min-w-[760px] text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-surface-2 text-left">
+                    {["账单号", "日期", "项目", "金额", "到账积分", "发票", "凭证"].map((h) => (
+                      <th key={h} className={th}>
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {bills.map((b) => (
+                    <tr key={b.no} className="border-b border-border/70 last:border-0">
+                      <td className={cn(td, "font-mono text-[12.5px]")}>{b.no}</td>
+                      <td className={cn(td, "font-mono text-[12.5px] text-muted-foreground")}>
+                        {b.date}
+                      </td>
+                      <td className={td}>{b.item}</td>
+                      <td className={cn(td, "font-medium")}>{b.amount}</td>
+                      <td className={cn(td, "font-mono text-[12.5px] text-muted-foreground")}>
+                        {fmt(b.credits)}
+                      </td>
+                      <td className={td}>
+                        {b.invoiced ? (
+                          <span className="text-sage">已开票</span>
+                        ) : (
+                          <button
+                            className="text-copper transition-opacity hover:opacity-70"
+                            onClick={() => {
+                              setBills((prev) =>
+                                prev.map((x) => (x.no === b.no ? { ...x, invoiced: true } : x)),
+                              );
+                              toast.success("开票申请已提交，1 个工作日内发送到邮箱");
+                            }}
+                          >
+                            申请开票
+                          </button>
+                        )}
+                      </td>
+                      <td className={td}>
+                        <button
+                          className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                          onClick={() => toast.success(`已下载 ${b.no}.pdf`)}
+                        >
+                          <Download className="size-3.5" /> 下载
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
+              <div className="panel p-6">
+                <p className="text-sm font-medium">发票抬头</p>
+                <div className="mt-4 space-y-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="inv-name">公司名称</Label>
+                    <Input id="inv-name" defaultValue="星云智能科技有限公司" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="inv-tax">纳税人识别号</Label>
+                    <Input id="inv-tax" defaultValue="91310000MA1FL9XXXX" className="font-mono" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="inv-mail">接收邮箱</Label>
+                    <Input id="inv-mail" defaultValue="finance@nebula.dev" />
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={() => toast.success("抬头信息已保存")}
+                    className="mt-1"
+                  >
+                    保存抬头
+                  </Button>
+                </div>
+              </div>
+              <div className="panel p-6">
+                <p className="text-sm font-medium">自动充值</p>
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                  余额低于阈值时自动扣款充值，避免线上调用被中断。
+                </p>
+                <div className="mt-4 flex items-center justify-between">
+                  <Label htmlFor="auto-recharge">开启自动充值</Label>
+                  <Switch id="auto-recharge" defaultChecked aria-label="开启自动充值" />
+                </div>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="auto-th">触发阈值（积分）</Label>
+                    <Input id="auto-th" defaultValue="100000" className="font-mono" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="auto-amt">每次充值（元）</Label>
+                    <Input id="auto-amt" defaultValue="1000" className="font-mono" />
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  className="mt-4"
+                  onClick={() => toast.success("自动充值规则已更新")}
+                >
+                  保存规则
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
     </>
   );
 }
