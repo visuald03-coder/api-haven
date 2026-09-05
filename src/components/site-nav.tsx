@@ -8,8 +8,9 @@ const links = [
   { to: "/models", label: "模型广场" },
   { to: "/ai-studio", label: "AI 能力" },
   { to: "/pricing", label: "价格" },
-  { to: "/deploy", label: "私有化部署" },
+  { to: "/console", label: "控制台" },
 ] as const;
+
 
 export function SiteNav() {
   const [open, setOpen] = useState(false);
