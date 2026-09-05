@@ -135,26 +135,28 @@ type LogRow = {
   time: string;
   key: string;
   model: string;
-  type: "对话" | "生图" | "Skill";
-  usage: string;
-  latency: string;
+  type: "对话" | "生图" | "视频" | "Skill" | "语音";
   credits: number;
+  genTime: string;
+  content: string;
+  asset: "文本" | "图片" | "视频" | "音频";
+  operator: string;
   status: "成功" | "处理中" | "限流" | "失败";
-  note?: string;
 };
 
 const allLogs: LogRow[] = [
-  { id: "l1", time: "09:41:22", key: "生产环境", model: "gpt-5.1", type: "对话", usage: "1,240 → 780", latency: "1.2s", credits: 3_580, status: "成功" },
-  { id: "l2", time: "09:40:58", key: "移动端", model: "flux-2-pro", type: "生图", usage: "1 张 1024²", latency: "4.6s", credits: 35, status: "成功" },
-  { id: "l3", time: "09:39:04", key: "生产环境", model: "aesthetic-boost", type: "Skill", usage: "3 张", latency: "7.1s", credits: 135, status: "成功" },
-  { id: "l4", time: "09:36:17", key: "内部工具", model: "deepseek-v4", type: "对话", usage: "8,600 → 2,100", latency: "3.4s", credits: 1_490, status: "成功" },
-  { id: "l5", time: "09:33:41", key: "生产环境", model: "video-remix", type: "Skill", usage: "1 条 45s", latency: "—", credits: 180, status: "处理中" },
-  { id: "l6", time: "09:30:02", key: "移动端", model: "claude-4.5-sonnet", type: "对话", usage: "2,300 → 0", latency: "0.2s", credits: 0, status: "限流", note: "超出每日积分上限" },
-  { id: "l7", time: "09:24:55", key: "内部工具", model: "whisper-turbo", type: "Skill", usage: "12 分钟音频", latency: "9.8s", credits: 240, status: "成功" },
-  { id: "l8", time: "09:18:30", key: "生产环境", model: "gpt-5.1-mini", type: "对话", usage: "640 → 310", latency: "0.7s", credits: 210, status: "成功" },
-  { id: "l9", time: "09:11:07", key: "移动端", model: "flux-2-pro", type: "生图", usage: "4 张 1024²", latency: "—", credits: 0, status: "失败", note: "上游超时，已自动退还积分" },
-  { id: "l10", time: "09:02:44", key: "生产环境", model: "claude-4.5-sonnet", type: "对话", usage: "5,120 → 1,860", latency: "4.1s", credits: 2_740, status: "成功" },
+  { id: "TX-20260905-0912", time: "2026-09-05 09:41:22", key: "生产环境", model: "gpt-5.1", type: "对话", credits: 3_580, genTime: "1.2s", content: "为新版落地页生成 3 组文案", asset: "文本", operator: "zhang@studio.dev", status: "成功" },
+  { id: "TX-20260905-0911", time: "2026-09-05 09:40:58", key: "移动端", model: "flux-2-pro", type: "生图", credits: 35, genTime: "4.6s", content: "极简米白色产品海报 1024²", asset: "图片", operator: "li@studio.dev", status: "成功" },
+  { id: "TX-20260905-0910", time: "2026-09-05 09:39:04", key: "生产环境", model: "aesthetic-boost", type: "Skill", credits: 135, genTime: "7.1s", content: "3 张商品图审美增强", asset: "图片", operator: "zhang@studio.dev", status: "成功" },
+  { id: "TX-20260905-0909", time: "2026-09-05 09:36:17", key: "内部工具", model: "deepseek-v4", type: "对话", credits: 1_490, genTime: "3.4s", content: "客服工单批量分类总结", asset: "文本", operator: "bot@studio.dev", status: "成功" },
+  { id: "TX-20260905-0908", time: "2026-09-05 09:33:41", key: "生产环境", model: "video-remix", type: "视频", credits: 180, genTime: "生成中", content: "45s 产品混剪 · 竖屏 9:16", asset: "视频", operator: "wang@studio.dev", status: "处理中" },
+  { id: "TX-20260905-0907", time: "2026-09-05 09:30:02", key: "移动端", model: "claude-4.5-sonnet", type: "对话", credits: 0, genTime: "0.2s", content: "请求被限流（超出每日上限）", asset: "文本", operator: "li@studio.dev", status: "限流" },
+  { id: "TX-20260905-0906", time: "2026-09-05 09:24:55", key: "内部工具", model: "whisper-turbo", type: "语音", credits: 240, genTime: "9.8s", content: "12 分钟访谈录音转写", asset: "音频", operator: "bot@studio.dev", status: "成功" },
+  { id: "TX-20260905-0905", time: "2026-09-05 09:18:30", key: "生产环境", model: "gpt-5.1-mini", type: "对话", credits: 210, genTime: "0.7s", content: "商品标题改写 20 条", asset: "文本", operator: "zhang@studio.dev", status: "成功" },
+  { id: "TX-20260905-0904", time: "2026-09-05 09:11:07", key: "移动端", model: "flux-2-pro", type: "生图", credits: 0, genTime: "—", content: "4 张主图（上游超时已退还）", asset: "图片", operator: "li@studio.dev", status: "失败" },
+  { id: "TX-20260905-0903", time: "2026-09-05 09:02:44", key: "生产环境", model: "claude-4.5-sonnet", type: "对话", credits: 2_740, genTime: "4.1s", content: "长文档摘要与要点抽取", asset: "文本", operator: "wang@studio.dev", status: "成功" },
 ];
+
 
 type Bill = {
   no: string;
