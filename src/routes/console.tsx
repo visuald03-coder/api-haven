@@ -380,9 +380,9 @@ function ConsolePage() {
         <Tabs defaultValue="keys" className="mt-10">
           <TabsList className="flex w-full flex-wrap justify-start">
             <TabsTrigger value="keys">密钥管理</TabsTrigger>
-            <TabsTrigger value="usage">积分消耗</TabsTrigger>
-            <TabsTrigger value="logs">消费日志</TabsTrigger>
+            <TabsTrigger value="usage">积分消耗与流水</TabsTrigger>
             <TabsTrigger value="bills">账单与发票</TabsTrigger>
+
           </TabsList>
 
           {/* ---------------- Keys ---------------- */}
