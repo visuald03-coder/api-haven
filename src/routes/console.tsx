@@ -282,9 +282,13 @@ function ConsolePage() {
     () =>
       allLogs.filter(
         (l) =>
-          (logKey === "all" || l.key === logKey) &&
-          (logStatus === "all" || l.status === logStatus) &&
-          (logQuery.trim() === "" || l.model.includes(logQuery.trim().toLowerCase())),
+          (logKey === "all" || l.asset === logKey) &&
+          (logStatus === "all" || l.operator === logStatus) &&
+          (logQuery.trim() === "" ||
+            `${l.id} ${l.model} ${l.type} ${l.content}`
+              .toLowerCase()
+              .includes(logQuery.trim().toLowerCase())),
+
       ),
     [logKey, logStatus, logQuery],
   );
