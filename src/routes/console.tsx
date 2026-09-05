@@ -174,12 +174,6 @@ const initialBills: Bill[] = [
   { no: "IN-2026-0602", date: "2026-06-02", item: "积分充值 · 自定义", amount: "¥300", credits: 330_000, invoiced: true },
 ];
 
-const statusTone: Record<LogRow["status"], string> = {
-  成功: "text-sage",
-  处理中: "text-copper",
-  限流: "text-destructive",
-  失败: "text-destructive",
-};
 
 const rechargePacks = [
   { amount: 100, credits: 105_000, tag: "体验" },
