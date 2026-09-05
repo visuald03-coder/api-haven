@@ -14,10 +14,11 @@ const groups = [
     title: "方案",
     items: [
       { label: "价格", to: "/pricing" as const },
-      { label: "私有化部署", to: "/deploy" as const },
+      { label: "控制台", to: "/console" as const },
     ],
   },
 ];
+
 
 export function SiteFooter() {
   return (

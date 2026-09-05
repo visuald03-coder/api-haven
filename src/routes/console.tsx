@@ -135,26 +135,28 @@ type LogRow = {
   time: string;
   key: string;
   model: string;
-  type: "对话" | "生图" | "Skill";
-  usage: string;
-  latency: string;
+  type: "对话" | "生图" | "视频" | "Skill" | "语音";
   credits: number;
+  genTime: string;
+  content: string;
+  asset: "文本" | "图片" | "视频" | "音频";
+  operator: string;
   status: "成功" | "处理中" | "限流" | "失败";
-  note?: string;
 };
 
 const allLogs: LogRow[] = [
-  { id: "l1", time: "09:41:22", key: "生产环境", model: "gpt-5.1", type: "对话", usage: "1,240 → 780", latency: "1.2s", credits: 3_580, status: "成功" },
-  { id: "l2", time: "09:40:58", key: "移动端", model: "flux-2-pro", type: "生图", usage: "1 张 1024²", latency: "4.6s", credits: 35, status: "成功" },
-  { id: "l3", time: "09:39:04", key: "生产环境", model: "aesthetic-boost", type: "Skill", usage: "3 张", latency: "7.1s", credits: 135, status: "成功" },
-  { id: "l4", time: "09:36:17", key: "内部工具", model: "deepseek-v4", type: "对话", usage: "8,600 → 2,100", latency: "3.4s", credits: 1_490, status: "成功" },
-  { id: "l5", time: "09:33:41", key: "生产环境", model: "video-remix", type: "Skill", usage: "1 条 45s", latency: "—", credits: 180, status: "处理中" },
-  { id: "l6", time: "09:30:02", key: "移动端", model: "claude-4.5-sonnet", type: "对话", usage: "2,300 → 0", latency: "0.2s", credits: 0, status: "限流", note: "超出每日积分上限" },
-  { id: "l7", time: "09:24:55", key: "内部工具", model: "whisper-turbo", type: "Skill", usage: "12 分钟音频", latency: "9.8s", credits: 240, status: "成功" },
-  { id: "l8", time: "09:18:30", key: "生产环境", model: "gpt-5.1-mini", type: "对话", usage: "640 → 310", latency: "0.7s", credits: 210, status: "成功" },
-  { id: "l9", time: "09:11:07", key: "移动端", model: "flux-2-pro", type: "生图", usage: "4 张 1024²", latency: "—", credits: 0, status: "失败", note: "上游超时，已自动退还积分" },
-  { id: "l10", time: "09:02:44", key: "生产环境", model: "claude-4.5-sonnet", type: "对话", usage: "5,120 → 1,860", latency: "4.1s", credits: 2_740, status: "成功" },
+  { id: "TX-20260905-0912", time: "2026-09-05 09:41:22", key: "生产环境", model: "gpt-5.1", type: "对话", credits: 3_580, genTime: "1.2s", content: "为新版落地页生成 3 组文案", asset: "文本", operator: "zhang@studio.dev", status: "成功" },
+  { id: "TX-20260905-0911", time: "2026-09-05 09:40:58", key: "移动端", model: "flux-2-pro", type: "生图", credits: 35, genTime: "4.6s", content: "极简米白色产品海报 1024²", asset: "图片", operator: "li@studio.dev", status: "成功" },
+  { id: "TX-20260905-0910", time: "2026-09-05 09:39:04", key: "生产环境", model: "aesthetic-boost", type: "Skill", credits: 135, genTime: "7.1s", content: "3 张商品图审美增强", asset: "图片", operator: "zhang@studio.dev", status: "成功" },
+  { id: "TX-20260905-0909", time: "2026-09-05 09:36:17", key: "内部工具", model: "deepseek-v4", type: "对话", credits: 1_490, genTime: "3.4s", content: "客服工单批量分类总结", asset: "文本", operator: "bot@studio.dev", status: "成功" },
+  { id: "TX-20260905-0908", time: "2026-09-05 09:33:41", key: "生产环境", model: "video-remix", type: "视频", credits: 180, genTime: "生成中", content: "45s 产品混剪 · 竖屏 9:16", asset: "视频", operator: "wang@studio.dev", status: "处理中" },
+  { id: "TX-20260905-0907", time: "2026-09-05 09:30:02", key: "移动端", model: "claude-4.5-sonnet", type: "对话", credits: 0, genTime: "0.2s", content: "请求被限流（超出每日上限）", asset: "文本", operator: "li@studio.dev", status: "限流" },
+  { id: "TX-20260905-0906", time: "2026-09-05 09:24:55", key: "内部工具", model: "whisper-turbo", type: "语音", credits: 240, genTime: "9.8s", content: "12 分钟访谈录音转写", asset: "音频", operator: "bot@studio.dev", status: "成功" },
+  { id: "TX-20260905-0905", time: "2026-09-05 09:18:30", key: "生产环境", model: "gpt-5.1-mini", type: "对话", credits: 210, genTime: "0.7s", content: "商品标题改写 20 条", asset: "文本", operator: "zhang@studio.dev", status: "成功" },
+  { id: "TX-20260905-0904", time: "2026-09-05 09:11:07", key: "移动端", model: "flux-2-pro", type: "生图", credits: 0, genTime: "—", content: "4 张主图（上游超时已退还）", asset: "图片", operator: "li@studio.dev", status: "失败" },
+  { id: "TX-20260905-0903", time: "2026-09-05 09:02:44", key: "生产环境", model: "claude-4.5-sonnet", type: "对话", credits: 2_740, genTime: "4.1s", content: "长文档摘要与要点抽取", asset: "文本", operator: "wang@studio.dev", status: "成功" },
 ];
+
 
 type Bill = {
   no: string;
@@ -172,12 +174,6 @@ const initialBills: Bill[] = [
   { no: "IN-2026-0602", date: "2026-06-02", item: "积分充值 · 自定义", amount: "¥300", credits: 330_000, invoiced: true },
 ];
 
-const statusTone: Record<LogRow["status"], string> = {
-  成功: "text-sage",
-  处理中: "text-copper",
-  限流: "text-destructive",
-  失败: "text-destructive",
-};
 
 const rechargePacks = [
   { amount: 100, credits: 105_000, tag: "体验" },
@@ -280,9 +276,13 @@ function ConsolePage() {
     () =>
       allLogs.filter(
         (l) =>
-          (logKey === "all" || l.key === logKey) &&
-          (logStatus === "all" || l.status === logStatus) &&
-          (logQuery.trim() === "" || l.model.includes(logQuery.trim().toLowerCase())),
+          (logKey === "all" || l.asset === logKey) &&
+          (logStatus === "all" || l.operator === logStatus) &&
+          (logQuery.trim() === "" ||
+            `${l.id} ${l.model} ${l.type} ${l.content}`
+              .toLowerCase()
+              .includes(logQuery.trim().toLowerCase())),
+
       ),
     [logKey, logStatus, logQuery],
   );
@@ -378,9 +378,9 @@ function ConsolePage() {
         <Tabs defaultValue="keys" className="mt-10">
           <TabsList className="flex w-full flex-wrap justify-start">
             <TabsTrigger value="keys">密钥管理</TabsTrigger>
-            <TabsTrigger value="usage">积分消耗</TabsTrigger>
-            <TabsTrigger value="logs">消费日志</TabsTrigger>
+            <TabsTrigger value="usage">积分消耗与流水</TabsTrigger>
             <TabsTrigger value="bills">账单与发票</TabsTrigger>
+
           </TabsList>
 
           {/* ---------------- Keys ---------------- */}
@@ -527,7 +527,7 @@ function ConsolePage() {
             </p>
           </TabsContent>
 
-          {/* ---------------- Usage ---------------- */}
+          {/* ---------------- Usage + Logs (merged) ---------------- */}
           <TabsContent value="usage" className="mt-6">
             <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr]">
               <div className="panel p-6">
@@ -576,6 +576,109 @@ function ConsolePage() {
               </div>
             </div>
 
+            <div className="mt-10 mb-4 flex flex-wrap items-center gap-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={logQuery}
+                  onChange={(e) => setLogQuery(e.target.value)}
+                  placeholder="搜索流水 ID / 目标 / 内容"
+                  className="h-9 w-64 pl-9"
+                />
+              </div>
+              <Select value={logKey} onValueChange={setLogKey}>
+                <SelectTrigger className="h-9 w-40">
+                  <SelectValue placeholder="全部资产类型" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">全部资产类型</SelectItem>
+                  {[...new Set(allLogs.map((l) => l.asset))].map((k) => (
+                    <SelectItem key={k} value={k}>
+                      {k}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={logStatus} onValueChange={setLogStatus}>
+                <SelectTrigger className="h-9 w-36">
+                  <SelectValue placeholder="全部操作人" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">全部操作人</SelectItem>
+                  {[...new Set(allLogs.map((l) => l.operator))].map((k) => (
+                    <SelectItem key={k} value={k}>
+                      {k}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline"
+                size="sm"
+                className="ml-auto"
+                onClick={() => toast.success(`已导出 ${filteredLogs.length} 条流水 CSV`)}
+              >
+                <Download className="mr-1.5 size-4" /> 导出 CSV
+              </Button>
+            </div>
+
+            <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-paper">
+              <table className="w-full min-w-[1080px] text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-surface-2 text-left">
+                    {[
+                      "流水ID",
+                      "时间",
+                      "类型/目标",
+                      "积分",
+                      "生成时间",
+                      "生成内容",
+                      "资产类型",
+                      "操作人",
+                    ].map((h) => (
+                      <th key={h} className={th}>
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredLogs.map((l) => (
+                    <tr key={l.id} className="border-b border-border/70 last:border-0">
+                      <td className={cn(td, "font-mono text-[12.5px]")}>{l.id}</td>
+                      <td className={cn(td, "font-mono text-[12.5px] text-muted-foreground")}>
+                        {l.time}
+                      </td>
+                      <td className={td}>
+                        <span className="text-muted-foreground">{l.type}</span>
+                        <span className="ml-2 font-mono text-[12.5px]">{l.model}</span>
+                      </td>
+                      <td className={cn(td, "font-mono text-[12.5px]")}>-{fmt(l.credits)}</td>
+                      <td className={cn(td, "font-mono text-[12.5px] text-muted-foreground")}>
+                        {l.genTime}
+                      </td>
+                      <td className={cn(td, "max-w-[260px] truncate")} title={l.content}>
+                        {l.content}
+                      </td>
+                      <td className={td}>
+                        <Badge variant="outline" className="text-[11px] font-normal">
+                          {l.asset}
+                        </Badge>
+                      </td>
+                      <td className={cn(td, "text-muted-foreground")}>{l.operator}</td>
+                    </tr>
+                  ))}
+                  {filteredLogs.length === 0 && (
+                    <tr>
+                      <td colSpan={8} className="px-5 py-10 text-center text-sm text-muted-foreground">
+                        没有符合条件的记录。
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
             <div className="mt-6 grid gap-4 sm:grid-cols-3">
               {[
                 { k: "低余额提醒", v: "余额低于 100,000 积分时邮件通知", on: true },
@@ -593,101 +696,6 @@ function ConsolePage() {
             </div>
           </TabsContent>
 
-          {/* ---------------- Logs ---------------- */}
-          <TabsContent value="logs" className="mt-6">
-            <div className="mb-4 flex flex-wrap items-center gap-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={logQuery}
-                  onChange={(e) => setLogQuery(e.target.value)}
-                  placeholder="搜索模型 / Skill"
-                  className="h-9 w-56 pl-9"
-                />
-              </div>
-              <Select value={logKey} onValueChange={setLogKey}>
-                <SelectTrigger className="h-9 w-40">
-                  <SelectValue placeholder="全部密钥" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">全部密钥</SelectItem>
-                  {[...new Set(allLogs.map((l) => l.key))].map((k) => (
-                    <SelectItem key={k} value={k}>
-                      {k}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={logStatus} onValueChange={setLogStatus}>
-                <SelectTrigger className="h-9 w-32">
-                  <SelectValue placeholder="全部状态" />
-                </SelectTrigger>
-                <SelectContent>
-                  {["all", "成功", "处理中", "限流", "失败"].map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {s === "all" ? "全部状态" : s}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button
-                variant="outline"
-                size="sm"
-                className="ml-auto"
-                onClick={() => toast.success(`已导出 ${filteredLogs.length} 条日志 CSV`)}
-              >
-                <Download className="mr-1.5 size-4" /> 导出 CSV
-              </Button>
-            </div>
-
-            <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-paper">
-              <table className="w-full min-w-[880px] text-sm">
-                <thead>
-                  <tr className="border-b border-border bg-surface-2 text-left">
-                    {["时间", "密钥", "模型 / Skill", "类型", "用量", "耗时", "扣减积分", "状态"].map(
-                      (h) => (
-                        <th key={h} className={th}>
-                          {h}
-                        </th>
-                      ),
-                    )}
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredLogs.map((l) => (
-                    <tr key={l.id} className="border-b border-border/70 last:border-0">
-                      <td className={cn(td, "font-mono text-[12.5px] text-muted-foreground")}>
-                        {l.time}
-                      </td>
-                      <td className={td}>{l.key}</td>
-                      <td className={cn(td, "font-mono text-[12.5px]")}>{l.model}</td>
-                      <td className={cn(td, "text-muted-foreground")}>{l.type}</td>
-                      <td className={cn(td, "font-mono text-[12.5px] text-muted-foreground")}>
-                        {l.usage}
-                      </td>
-                      <td className={cn(td, "font-mono text-[12.5px] text-muted-foreground")}>
-                        {l.latency}
-                      </td>
-                      <td className={cn(td, "font-mono text-[12.5px]")}>{fmt(l.credits)}</td>
-                      <td className={cn(td, statusTone[l.status])}>
-                        {l.status}
-                        {l.note ? (
-                          <span className="ml-1.5 text-[11px] text-muted-foreground">{l.note}</span>
-                        ) : null}
-                      </td>
-                    </tr>
-                  ))}
-                  {filteredLogs.length === 0 && (
-                    <tr>
-                      <td colSpan={8} className="px-5 py-10 text-center text-sm text-muted-foreground">
-                        没有符合条件的记录。
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </TabsContent>
 
           {/* ---------------- Bills ---------------- */}
           <TabsContent value="bills" className="mt-6">
