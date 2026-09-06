@@ -5,7 +5,7 @@ import {
   Gauge,
   Image as ImageIcon,
   Layers,
-  ServerCog,
+  LayoutDashboard,
   ShieldCheck,
   Wallet,
 } from "lucide-react";
@@ -20,12 +20,12 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "一个兼容 OpenAI 协议的网关，聚合 200+ 大模型、生图与语音等 AI Skill，按量计费，并支持私有化部署。",
+          "一个兼容 OpenAI 协议的网关，聚合 200+ 大模型、生图与视频等 AI Skill，按量计费，密钥、积分与账单集中在控制台管理。",
       },
       { property: "og:title", content: "API FLOW · 统一 AI 网关" },
       {
         property: "og:description",
-        content: "聚合 200+ 大模型与 AI 能力，一行改动接入，支持私有化部署。",
+        content: "聚合 200+ 大模型与 AI 能力，一行改动接入，控制台统一管理密钥与账单。",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -46,29 +46,29 @@ const modules = [
     to: "/models" as const,
     icon: Layers,
     name: "模型广场",
-    desc: "216 个在线模型的上下文、能力标签与每百万 token 价格，一处对比。",
+    desc: "200+ 在线模型的上下文、能力标签与每百万 token 价格，一处对比。",
     meta: "29 家厂商",
   },
   {
     to: "/ai-studio" as const,
     icon: ImageIcon,
     name: "AI 能力",
-    desc: "生图、语音转写、文档解析、信息抽取，封装成开箱即用的 Skill。",
+    desc: "生图、视频混剪、文档解析、信息抽取，封装成开箱即用的 Skill。",
     meta: "12 个 Skill",
   },
   {
     to: "/pricing" as const,
     icon: Wallet,
     name: "价格",
-    desc: "按量计费无最低消费，预付阶梯折扣，团队与企业版可享 SLA。",
+    desc: "按量计费无最低消费，积分随充随用，充值越多赠送越多。",
     meta: "8 折起",
   },
   {
-    to: "/deploy" as const,
-    icon: ServerCog,
-    name: "私有化部署",
-    desc: "VPC 专属、混合云与全离线三种形态，兼容国产算力与等保要求。",
-    meta: "最快 3 天",
+    to: "/console" as const,
+    icon: LayoutDashboard,
+    name: "控制台",
+    desc: "密钥管理、积分消耗、消费日志、账单与发票，一个页面全掌握。",
+    meta: "账户中心",
   },
 ];
 
@@ -92,8 +92,8 @@ function Home() {
             所有账单，一张表
           </h1>
           <p className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground">
-            API FLOW 把 200+ 大模型、生图与语音能力收进同一套协议、同一份配额、同一个控制台。
-            公有网关按量付费，也可以整套搬进你的内网。
+            API FLOW 把 200+ 大模型、生图与视频能力收进同一套协议、同一份配额、同一个控制台。
+            公有网关按量付费，所有调用记录、密钥与账单集中管理。
           </p>
           <div className="mt-9 flex flex-wrap gap-3">
             <Button size="lg" asChild>
@@ -119,7 +119,7 @@ function Home() {
       </section>
 
       <Section
-        title="五个模块，覆盖从试用到私有交付"
+        title="五个模块，覆盖从接入到账户管理"
         description="每个模块都是独立页面，可以按你团队所处的阶段进入。"
       >
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -196,7 +196,7 @@ function Home() {
               <Link to="/api-access">免费试用</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link to="/deploy">咨询私有化</Link>
+              <Link to="/console">进入控制台</Link>
             </Button>
           </div>
         </div>
