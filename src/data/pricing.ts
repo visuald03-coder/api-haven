@@ -275,3 +275,79 @@ export const priceModels: PriceModel[] = [
   { id: "wan2.7-videoedit", name: "wan2.7-videoedit", category: "video", unit: "usd_per_second", rows: [{ spec: "default", our: 0.0664, official: 0.083 }, { spec: "1080P", our: 0.1096, official: 0.137 }] },
   { id: "wan3.0-video", name: "wan3.0-video", category: "video", unit: "usd_per_second", rows: [{ spec: "default", our: 0.137144, official: 0.17143 }, { spec: "1080P", our: 0.137144, official: 0.17143 }, { spec: "480P", our: 0.034288, official: 0.04286 }, { spec: "720P", our: 0.068568, official: 0.08571 }] },
 ];
+
+export const categoryLabels: Record<PriceModel["category"], string> = {
+  image: "图片",
+  video: "视频",
+  llm: "LLM",
+};
+
+const vendorRules: [RegExp, string][] = [
+  [/^(gpt|chatgpt|o1|o3|o4|dall-e|sora|davinci|babbage|text-embedding|text-moderation|omni-moderation)/i, "OpenAI"],
+  [/^claude/i, "Anthropic"],
+  [/^(gemini|imagen|veo|nano)/i, "Google"],
+  [/nano-banana/i, "Google"],
+  [/^deepseek/i, "DeepSeek"],
+  [/^(qwen|wan)/i, "阿里云"],
+  [/^kimi/i, "月之暗面"],
+  [/^(glm|z-image)/i, "智谱"],
+  [/^grok/i, "xAI"],
+  [/^(minimax|hailuo)/i, "MiniMax"],
+  [/^(seedance|seedream)/i, "字节跳动"],
+  [/^kling/i, "快手可灵"],
+  [/^vidu/i, "生数科技"],
+  [/^flux/i, "Black Forest Labs"],
+  [/^midjourney/i, "Midjourney"],
+  [/^pixverse/i, "PixVerse"],
+  [/^skyreels/i, "昆仑万维"],
+  [/^(step|mimo|happyhorse)/i, "其他"],
+];
+
+export const vendorOf = (m: PriceModel): string => {
+  const key = `${m.id} ${m.alias ?? ""}`;
+  for (const [re, vendor] of vendorRules) if (re.test(m.id) || re.test(key)) return vendor;
+  return "其他";
+};
+
+export const priceRangeOf = (m: PriceModel) => {
+  const ours = m.rows.map((r) => r.our);
+  const officials = m.rows.map((r) => r.official);
+  const min = Math.min(...ours);
+  const max = Math.max(...ours);
+  const officialMin = Math.min(...officials);
+  const saving = officialMin > 0 ? ((officialMin - min) / officialMin) * 100 : 0;
+  return { min, max, officialMin, saving };
+};
+
+export const hotModelIds = new Set([
+  "gpt-5.2",
+  "gpt-5.1",
+  "gpt-5.1-codex",
+  "gemini-3.1-pro-preview",
+  "gemini-3-flash-preview",
+  "claude-opus-4-6",
+  "claude-sonnet-4-6",
+  "deepseek-v4-pro",
+  "deepseek-v3.2",
+  "qwen3.8-max",
+  "kimi-k3",
+  "glm-5.2",
+  "grok-4.6",
+  "minimax-m3",
+  "gemini-3.1-flash-image-preview",
+  "gemini-3-pro-image-preview",
+  "gemini-2.5-flash-image-preview",
+  "gpt-image-2",
+  "seedream-5-0-pro",
+  "flux-2-pro",
+  "qwen-image-3.0",
+  "midjourney",
+  "seedance-2.5",
+  "seedance-2.0",
+  "MiniMax-H3",
+  "MiniMax-Hailuo-2.3",
+  "kling-v3",
+  "sora-2-pro",
+  "veo3.1-quality",
+  "wan2.7",
+]);
