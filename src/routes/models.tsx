@@ -1,22 +1,35 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Search, Zap, Eye, Wrench, ArrowUpRight } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { Search, Zap, ArrowUpRight, Image as ImageIcon, Film, MessageSquare } from "lucide-react";
 import { PageHeader, Section } from "@/components/section";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  priceModels,
+  unitLabel,
+  categoryLabels,
+  vendorOf,
+  priceRangeOf,
+  hotModelIds,
+  type PriceModel,
+} from "@/data/pricing";
 
 export const Route = createFileRoute("/models")({
   head: () => ({
     meta: [
-      { title: "模型广场 · 200+ 大模型统一比价 | API FLOW" },
+      { title: "模型广场 · 图片 / 视频 / LLM 全模型 | API FLOW" },
       {
         name: "description",
         content:
-          "对比 GPT、Claude、Gemini、DeepSeek、Qwen 等 200+ 模型的上下文、能力标签与每百万 token 价格，一键切换。",
+          "API FLOW 模型广场按图片、视频、LLM 三类收录全部可调用模型：GPT、Gemini、Claude、DeepSeek、Qwen、Kimi、Nano Banana、GPT Image 2、Seedream、Seedance、MiniMax H3 等，价格与单价表一一对应。",
       },
-      { property: "og:title", content: "模型广场 · API FLOW" },
-      { property: "og:description", content: "200+ 大模型的能力与价格，一处对比一键切换。" },
+      { property: "og:title", content: "模型广场 · 图片 / 视频 / LLM | API FLOW" },
+      {
+        property: "og:description",
+        content: "图片、视频、LLM 三类模型统一接入，能力与价格一处对齐。",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -24,64 +37,126 @@ export const Route = createFileRoute("/models")({
   component: ModelsPage,
 });
 
-type Model = {
-  id: string;
-  vendor: string;
-  category: "对话" | "推理" | "多模态" | "生图" | "语音" | "向量";
-  context: string;
-  input: string;
-  output: string;
-  tags: string[];
-  hot?: boolean;
+const tabs = [
+  { value: "all", label: "全部", icon: Zap },
+  { value: "llm", label: "LLM", icon: MessageSquare },
+  { value: "image", label: "图片", icon: ImageIcon },
+  { value: "video", label: "视频", icon: Film },
+] as const;
+type Tab = (typeof tabs)[number]["value"];
+
+const fmt = (n: number) => {
+  if (n === 0) return "0";
+  const s = n < 0.01 ? n.toFixed(6) : n.toFixed(n < 1 ? 4 : 2);
+  return s.replace(/\.?0+$/, "");
 };
 
-const MODELS: Model[] = [
-  { id: "gpt-5.1", vendor: "OpenAI", category: "对话", context: "400K", input: "¥8.9", output: "¥26.7", tags: ["视觉", "工具"], hot: true },
-  { id: "o4-reasoning", vendor: "OpenAI", category: "推理", context: "200K", input: "¥15.0", output: "¥60.0", tags: ["长链推理"] },
-  { id: "claude-4.5-sonnet", vendor: "Anthropic", category: "对话", context: "1M", input: "¥7.2", output: "¥36.0", tags: ["代码", "工具"], hot: true },
-  { id: "claude-4.5-haiku", vendor: "Anthropic", category: "对话", context: "200K", input: "¥1.8", output: "¥7.2", tags: ["低延迟"] },
-  { id: "gemini-3-pro", vendor: "Google", category: "多模态", context: "2M", input: "¥6.5", output: "¥25.0", tags: ["视频", "视觉"], hot: true },
-  { id: "gemini-3-flash", vendor: "Google", category: "多模态", context: "1M", input: "¥0.6", output: "¥2.4", tags: ["高并发"] },
-  { id: "deepseek-v4", vendor: "DeepSeek", category: "推理", context: "128K", input: "¥1.0", output: "¥4.0", tags: ["性价比"], hot: true },
-  { id: "qwen3-max", vendor: "阿里云", category: "对话", context: "256K", input: "¥2.4", output: "¥9.6", tags: ["中文"] },
-  { id: "kimi-k2", vendor: "月之暗面", category: "对话", context: "512K", input: "¥2.0", output: "¥8.0", tags: ["长文档"] },
-  { id: "glm-5", vendor: "智谱", category: "对话", context: "200K", input: "¥1.6", output: "¥6.4", tags: ["Agent"] },
-  { id: "flux-2-pro", vendor: "BFL", category: "生图", context: "—", input: "¥0.28/张", output: "—", tags: ["高保真"] },
-  { id: "seedream-4", vendor: "字节", category: "生图", context: "—", input: "¥0.14/张", output: "—", tags: ["中文渲字"] },
-  { id: "whisper-lg-v3", vendor: "OpenAI", category: "语音", context: "—", input: "¥0.04/分钟", output: "—", tags: ["转写"] },
-  { id: "cosyvoice-3", vendor: "阿里云", category: "语音", context: "—", input: "¥0.09/千字", output: "—", tags: ["音色克隆"] },
-  { id: "bge-m3", vendor: "BAAI", category: "向量", context: "8K", input: "¥0.05", output: "—", tags: ["多语言"] },
-  { id: "text-embed-4", vendor: "OpenAI", category: "向量", context: "8K", input: "¥0.09", output: "—", tags: ["检索"] },
-];
+const shortUnit = (unit: string) => (unitLabel[unit] ?? "").replace("USD / ", "");
 
-const CATEGORIES = ["全部", "对话", "推理", "多模态", "生图", "语音", "向量"] as const;
+function ModelCard({ m }: { m: PriceModel }) {
+  const { min, max, saving } = priceRangeOf(m);
+  const unit = shortUnit(m.unit);
+  const hot = hotModelIds.has(m.id);
+
+  return (
+    <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-5 shadow-paper transition-colors hover:border-copper/60">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="truncate font-mono text-sm font-medium">{m.name}</span>
+            {hot && (
+              <Badge className="gap-1 bg-copper-soft text-accent-foreground hover:bg-copper-soft">
+                <Zap className="size-3" />热门
+              </Badge>
+            )}
+          </div>
+          <div className="mt-1 truncate font-mono text-[11px] text-muted-foreground">
+            {m.alias ?? m.id}
+          </div>
+        </div>
+        <Badge variant="outline" className="shrink-0 text-[11px] font-normal">
+          {categoryLabels[m.category]}
+        </Badge>
+      </div>
+
+      <div className="mt-auto flex items-end justify-between gap-3 border-t border-border/70 pt-3">
+        <div>
+          <div className="font-mono text-[13px]">
+            ${fmt(min)}
+            {max > min && <span className="text-muted-foreground"> ~ ${fmt(max)}</span>}
+            <span className="text-muted-foreground"> / {unit}</span>
+          </div>
+          <div className="mt-1 text-[11px] text-muted-foreground">
+            {vendorOf(m)} · {m.rows.length} 个规格
+            {saving > 0 && <span className="text-sage"> · 省 {saving.toFixed(0)}%</span>}
+          </div>
+        </div>
+        <Button asChild variant="ghost" size="sm" className="shrink-0">
+          <Link to="/pricing">
+            价格 <ArrowUpRight className="ml-1 size-3.5" />
+          </Link>
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 function ModelsPage() {
+  const [tab, setTab] = useState<Tab>("all");
+  const [vendor, setVendor] = useState<string>("全部");
   const [q, setQ] = useState("");
-  const [cat, setCat] = useState<(typeof CATEGORIES)[number]>("全部");
+  const [hotOnly, setHotOnly] = useState(false);
 
-  const list = useMemo(
+  const counts = useMemo(
     () =>
-      MODELS.filter(
-        (m) =>
-          (cat === "全部" || m.category === cat) &&
-          (m.id.includes(q.toLowerCase()) || m.vendor.toLowerCase().includes(q.toLowerCase())),
+      priceModels.reduce(
+        (acc, m) => {
+          acc[m.category]++;
+          acc.all++;
+          return acc;
+        },
+        { all: 0, image: 0, video: 0, llm: 0 } as Record<Tab, number>,
       ),
-    [q, cat],
+    [],
   );
+
+  const vendors = useMemo(() => {
+    const pool = priceModels.filter((m) => tab === "all" || m.category === tab);
+    const map = new Map<string, number>();
+    pool.forEach((m) => map.set(vendorOf(m), (map.get(vendorOf(m)) ?? 0) + 1));
+    return ["全部", ...[...map.entries()].sort((a, b) => b[1] - a[1]).map(([v]) => v)];
+  }, [tab]);
+
+  const list = useMemo(() => {
+    const key = q.trim().toLowerCase();
+    return priceModels
+      .filter((m) => {
+        if (tab !== "all" && m.category !== tab) return false;
+        if (vendor !== "全部" && vendorOf(m) !== vendor) return false;
+        if (hotOnly && !hotModelIds.has(m.id)) return false;
+        if (!key) return true;
+        return `${m.id} ${m.name} ${m.alias ?? ""} ${vendorOf(m)}`.toLowerCase().includes(key);
+      })
+      .sort((a, b) => {
+        const ha = hotModelIds.has(a.id) ? 0 : 1;
+        const hb = hotModelIds.has(b.id) ? 0 : 1;
+        return ha - hb || a.name.localeCompare(b.name);
+      });
+  }, [tab, vendor, q, hotOnly]);
 
   return (
     <>
       <PageHeader
         eyebrow="Model Square"
-        title="200+ 模型，同一份价目表"
-        description="按能力和成本挑模型，而不是按你手上有哪家的账号。价格为每百万 token 参考价，实时同步厂商调价。"
+        title="图片 · 视频 · LLM，一张模型清单"
+        description="模型分类与价格表完全一致：LLM 覆盖 GPT、Gemini、Claude、DeepSeek、Qwen、Kimi；生图覆盖 Nano Banana、GPT Image 2、Seedream、Flux；生视频覆盖 Seedance 2.5、MiniMax H3、Kling、Veo、Sora。"
       >
         <div className="flex flex-wrap gap-8">
           {[
-            ["216", "在线模型"],
-            ["29", "接入厂商"],
-            ["99.98%", "网关可用性"],
+            [String(counts.all), "在线模型"],
+            [String(counts.llm), "LLM"],
+            [String(counts.image), "图片模型"],
+            [String(counts.video), "视频模型"],
           ].map(([n, l]) => (
             <div key={l}>
               <div className="font-display text-2xl font-semibold">{n}</div>
@@ -91,86 +166,82 @@ function ModelsPage() {
         </div>
       </PageHeader>
 
-      <Section>
+      <Section className="pt-0">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-wrap gap-1.5">
-            {CATEGORIES.map((c) => (
+            {tabs.map((t) => (
               <button
-                key={c}
-                onClick={() => setCat(c)}
-                className={`rounded-full border px-3.5 py-1.5 text-sm transition-colors ${
-                  cat === c
-                    ? "border-primary bg-primary text-primary-foreground"
+                key={t.value}
+                onClick={() => {
+                  setTab(t.value);
+                  setVendor("全部");
+                }}
+                className={`flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm transition-colors ${
+                  tab === t.value
+                    ? "border-copper bg-copper text-primary-foreground"
                     : "border-border bg-surface text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {c}
+                <t.icon className="size-3.5" />
+                {t.label}
+                <span className="text-[11px] opacity-70">({counts[t.value]})</span>
               </button>
             ))}
           </div>
-          <div className="relative md:w-72">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="搜索模型或厂商"
-              className="bg-surface pl-9"
-            />
-          </div>
-        </div>
-
-        <div className="mt-6 overflow-hidden rounded-xl border border-border bg-card shadow-paper">
-          <div className="hidden grid-cols-[2.2fr_1fr_0.8fr_0.8fr_0.8fr_auto] gap-4 border-b border-border bg-surface-2 px-5 py-3 font-mono text-[11px] uppercase tracking-widest text-muted-foreground md:grid">
-            <span>模型</span>
-            <span>厂商</span>
-            <span>上下文</span>
-            <span>输入</span>
-            <span>输出</span>
-            <span />
-          </div>
-          {list.map((m) => (
-            <div
-              key={m.id}
-              className="grid gap-2 border-b border-border/70 px-5 py-4 transition-colors last:border-0 hover:bg-surface-2 md:grid-cols-[2.2fr_1fr_0.8fr_0.8fr_0.8fr_auto] md:items-center md:gap-4"
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setHotOnly((v) => !v)}
+              className={`rounded-full border px-3.5 py-1.5 text-sm transition-colors ${
+                hotOnly
+                  ? "border-copper bg-copper-soft text-accent-foreground"
+                  : "border-border bg-surface text-muted-foreground hover:text-foreground"
+              }`}
             >
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-mono text-sm font-medium">{m.id}</span>
-                {m.hot && (
-                  <Badge className="gap-1 bg-copper-soft text-accent-foreground hover:bg-copper-soft">
-                    <Zap className="size-3" />热门
-                  </Badge>
-                )}
-                {m.tags.map((t) => (
-                  <Badge key={t} variant="outline" className="text-[11px] font-normal">
-                    {t}
-                  </Badge>
-                ))}
-              </div>
-              <span className="text-sm text-muted-foreground">{m.vendor}</span>
-              <span className="text-sm text-muted-foreground">{m.context}</span>
-              <span className="text-sm">{m.input}</span>
-              <span className="text-sm">{m.output}</span>
-              <Button variant="ghost" size="sm" className="justify-self-start md:justify-self-end">
-                调用 <ArrowUpRight className="ml-1 size-3.5" />
-              </Button>
+              只看热门
+            </button>
+            <div className="relative md:w-64">
+              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="搜索模型或厂商"
+                className="bg-surface pl-9"
+              />
             </div>
-          ))}
-          {list.length === 0 && (
-            <p className="px-5 py-12 text-center text-sm text-muted-foreground">
-              没有匹配的模型，换个关键词试试。
-            </p>
-          )}
+          </div>
         </div>
 
-        <div className="mt-6 flex flex-wrap gap-6 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1.5">
-            <Eye className="size-3.5" /> 视觉输入
-          </span>
-          <span className="flex items-center gap-1.5">
-            <Wrench className="size-3.5" /> 工具调用 / Function Calling
-          </span>
-          <span>价格单位：元 / 百万 token（生图与语音另计）</span>
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          {vendors.map((v) => (
+            <button
+              key={v}
+              onClick={() => setVendor(v)}
+              className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+                vendor === v
+                  ? "border-foreground bg-foreground text-background"
+                  : "border-border bg-surface text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {v}
+            </button>
+          ))}
         </div>
+
+        <p className="mt-5 text-xs text-muted-foreground">
+          共 {list.length} 个模型 · 价格为 USD 起价，与「价格」页单价表同源
+        </p>
+
+        <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {list.map((m) => (
+            <ModelCard key={m.id} m={m} />
+          ))}
+        </div>
+
+        {list.length === 0 && (
+          <p className="py-12 text-center text-sm text-muted-foreground">
+            没有匹配的模型，换个关键词或分类试试。
+          </p>
+        )}
       </Section>
     </>
   );
