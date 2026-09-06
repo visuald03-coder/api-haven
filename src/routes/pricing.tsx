@@ -137,7 +137,7 @@ function PricingPage() {
             <tbody>
               {filtered.map((m) =>
                 m.rows.map((r, i) => {
-                  const unit = unitLabel[m.unit].replace("USD / ", "");
+                  const unit = (unitLabel[m.unit] ?? "").replace("USD / ", "");
                   const save = savingsText(r.official, r.our);
                   return (
                     <tr
