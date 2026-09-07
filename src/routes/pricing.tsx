@@ -1,10 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { Search, Zap } from "lucide-react";
 import { PageHeader, Section } from "@/components/section";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { priceModels, unitLabel } from "@/data/pricing";
+import {
+  priceModels,
+  unitLabel,
+  vendorOf,
+  priceRangeOf,
+  hotModelIds,
+  categoryLabels,
+  type PriceModel,
+} from "@/data/pricing";
+
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
