@@ -85,7 +85,7 @@ function modelDescription(m: PriceModel): string {
     "kimi-k3": "Moonshot 长上下文与文档理解旗舰模型",
     "glm-5.2": "智谱 GLM 新一代旗舰，中文场景与 Agent 能力突出",
     "grok-4.6": "xAI 最新大模型，实时信息与推理能力突出",
-    minimax_m3: "MiniMax 主力大模型，中文对话与创作优秀",
+    "minimax-m3": "MiniMax 主力大模型，中文对话与创作优秀",
   };
   return map[m.id] ?? (m.alias ? `模型 ID: ${m.alias}` : `模型 ID: ${m.id}`);
 }
