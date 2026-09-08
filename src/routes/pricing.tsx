@@ -52,21 +52,6 @@ const fmt = (n: number) => {
 
 const shortUnit = (unit: string) => (unitLabel[unit] ?? "").replace("USD / ", "");
 
-const vendorLogos: Record<string, string> = {
-  OpenAI: "https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg",
-  Google: "https://www.google.com/favicon.ico",
-  Anthropic: "https://www.anthropic.com/favicon.ico",
-  DeepSeek: "https://www.deepseek.com/favicon.ico",
-  Alibaba: "https://www.alibaba.com/favicon.ico",
-  Moonshot: "https://www.moonshot.cn/favicon.ico",
-  Zhipu: "https://www.zhipu.ai/favicon.ico",
-  xAI: "https://x.ai/favicon.ico",
-  MiniMax: "https://www.minimaxi.com/favicon.ico",
-  Midjourney: "https://www.midjourney.com/favicon.ico",
-  ByteDance: "https://www.bytedance.com/favicon.ico",
-  Kling: "https://www.klingai.com/favicon.ico",
-  OpenAI_Sora: "https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg",
-};
 
 function modelDescription(m: PriceModel): string {
   if (m.description) return m.description;
