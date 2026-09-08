@@ -104,20 +104,9 @@ function PriceTable({ m }: { m: PriceModel }) {
       {/* Header row */}
       <div className="flex flex-col gap-1 border-b border-border px-5 py-4 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-3">
-          {vendorLogos[vendorOf(m)] ? (
-            <img
-              src={vendorLogos[vendorOf(m)]}
-              alt=""
-              className="size-6 rounded-md object-contain"
-              onError={(e) => {
-                (e.currentTarget as HTMLImageElement).style.display = "none";
-              }}
-            />
-          ) : (
-            <div className="flex size-6 items-center justify-center rounded-md bg-surface font-mono text-[10px] font-bold text-muted-foreground">
-              {vendorOf(m).slice(0, 1)}
-            </div>
-          )}
+          <div className="flex size-6 items-center justify-center rounded-md bg-surface font-mono text-[10px] font-bold text-muted-foreground">
+            {vendorOf(m).slice(0, 1)}
+          </div>
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <span className="font-semibold tracking-tight">{m.name}</span>
