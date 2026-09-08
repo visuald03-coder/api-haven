@@ -3,6 +3,7 @@ export type PriceModel = {
   id: string;
   name: string;
   alias?: string;
+  description?: string;
   category: "image" | "video" | "llm";
   unit: string;
   rows: PriceRow[];

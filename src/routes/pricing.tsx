@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Search, Zap } from "lucide-react";
+import { Search, Zap, ArrowDownRight } from "lucide-react";
 import { PageHeader, Section } from "@/components/section";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -9,12 +9,11 @@ import {
   priceModels,
   unitLabel,
   vendorOf,
-  priceRangeOf,
   hotModelIds,
   categoryLabels,
   type PriceModel,
+  type PriceRow,
 } from "@/data/pricing";
-
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
@@ -53,50 +52,119 @@ const fmt = (n: number) => {
 
 const shortUnit = (unit: string) => (unitLabel[unit] ?? "").replace("USD / ", "");
 
-function PriceCard({ m }: { m: PriceModel }) {
-  const { min, max, officialMin, saving } = priceRangeOf(m);
+
+function modelDescription(m: PriceModel): string {
+  if (m.description) return m.description;
+  const map: Record<string, string> = {
+    "gemini-2.5-flash-image-preview": "Google 高性价比生图模型，适合快速创意草图",
+    "gemini-3-pro-image-preview": "Google 旗舰生图模型，细节与语义对齐更强",
+    "gemini-3.1-flash-image-preview": "Google 新一代轻量生图模型，速度与质量兼顾",
+    "gpt-image-2": "OpenAI 最新原生生图模型，提示词遵循度极高",
+    "seedream-5-0-pro": "字节跳动 Seedream 系列旗舰，中文场景表现出色",
+    "flux-2-pro": "Black Forest Labs 专业级生图模型，商用质感突出",
+    "qwen-image-3.0": "阿里通义千问生图模型，中文理解与图文对齐优秀",
+    midjourney: "全球知名艺术风格生图平台，社区生态丰富",
+    "seedance-2.5": "字节跳动高画质视频生成模型，运动一致性优秀",
+    "seedance-2.0": "字节跳动视频生成基础版，性价比之选",
+    "MiniMax-H3": "MiniMax 高性能视频生成模型，镜头语言自然",
+    "MiniMax-Hailuo-2.3": "MiniMax 海螺视频模型，适合短视频与广告",
+    "kling-v3": "快手 Kling 视频生成模型，物理规律理解强",
+    "sora-2-pro": "OpenAI Sora 专业级视频生成，电影感镜头突出",
+    "veo3.1-quality": "Google Veo 高质量视频生成模型，语义控制精准",
+    "wan2.7": "阿里 Wan 视频生成模型，开源生态与效果兼顾",
+    "gpt-5.2": "OpenAI 最新旗舰大模型，复杂推理与代码能力突出",
+    "gpt-5.1": "OpenAI 旗舰大模型，综合性能与稳定性俱佳",
+    "gpt-5.1-codex": "OpenAI 专为代码与工具调用优化的模型",
+    "gemini-3-pro-preview": "Google 旗舰多模态大模型，长上下文与推理优秀",
+    "gemini-3-flash-preview": "Google 轻量多模态大模型，响应快成本低",
+    "claude-opus-4-6": "Anthropic 最强推理与写作模型，长文理解突出",
+    "claude-sonnet-4-6": "Anthropic 平衡性能与速度的主力模型",
+    "deepseek-v4-pro": "DeepSeek 最新专业版，推理与代码能力突出",
+    "deepseek-v3.2": "DeepSeek 轻量高效模型，日常任务性价比之选",
+    "qwen3.8-max": "阿里通义千问旗舰模型，中文理解与知识问答强",
+    "kimi-k3": "Moonshot 长上下文与文档理解旗舰模型",
+    "glm-5.2": "智谱 GLM 新一代旗舰，中文场景与 Agent 能力突出",
+    "grok-4.6": "xAI 最新大模型，实时信息与推理能力突出",
+    "minimax-m3": "MiniMax 主力大模型，中文对话与创作优秀",
+  };
+  return map[m.id] ?? (m.alias ? `模型 ID: ${m.alias}` : `模型 ID: ${m.id}`);
+}
+
+function savingOf(row: PriceRow) {
+  if (row.official <= 0) return 0;
+  return Math.round(((row.official - row.our) / row.official) * 100);
+}
+
+function PriceTable({ m }: { m: PriceModel }) {
   const unit = shortUnit(m.unit);
   const hot = hotModelIds.has(m.id);
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-5 shadow-paper transition-colors hover:border-copper/60">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="truncate font-medium">{m.name}</span>
-            {hot && (
-              <Badge className="gap-1 bg-copper-soft text-accent-foreground hover:bg-copper-soft">
-                <Zap className="size-3" />热门
-              </Badge>
-            )}
+    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-paper">
+      {/* Header row */}
+      <div className="flex flex-col gap-1 border-b border-border px-5 py-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex size-6 items-center justify-center rounded-md bg-surface font-mono text-[10px] font-bold text-muted-foreground">
+            {vendorOf(m).slice(0, 1)}
           </div>
-          <div className="mt-1 truncate font-mono text-[11px] text-muted-foreground">
-            {m.alias ?? m.id}
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-semibold tracking-tight">{m.name}</span>
+              {hot && (
+                <Badge className="gap-1 bg-copper-soft text-accent-foreground hover:bg-copper-soft">
+                  <Zap className="size-3" />热门
+                </Badge>
+              )}
+            </div>
+            <div className="mt-0.5 text-xs text-muted-foreground">
+              {modelDescription(m)}
+            </div>
           </div>
         </div>
-        <Badge variant="outline" className="shrink-0 text-[11px] font-normal">
-          {categoryLabels[m.category]}
-        </Badge>
+        <div className="mt-2 text-xs text-muted-foreground md:mt-0">
+          {m.rows.length} 个价格档位
+        </div>
       </div>
 
-      <div className="mt-auto border-t border-border/70 pt-3">
-        <div className="flex items-end justify-between gap-3">
-          <div>
-            <div className="font-mono text-[15px]">
-              ${fmt(min)}
-              {max > min && <span className="text-muted-foreground"> ~ ${fmt(max)}</span>}
-              <span className="text-xs text-muted-foreground"> / {unit}</span>
+      {/* Column headers */}
+      <div className="grid grid-cols-4 border-b border-border bg-surface/50 px-5 py-2.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+        <div>规格</div>
+        <div className="text-right">我们的价格</div>
+        <div className="text-right">官方价格</div>
+        <div className="text-right">节省</div>
+      </div>
+
+      {/* Rows */}
+      <div className="divide-y divide-border/70">
+        {m.rows.map((row, idx) => {
+          const saving = savingOf(row);
+          return (
+            <div
+              key={`${row.spec}-${idx}`}
+              className="grid grid-cols-4 items-center px-5 py-3 text-sm"
+            >
+              <div className="font-medium">{row.spec}</div>
+              <div className="text-right font-mono text-foreground">
+                {fmt(row.our)}
+                <span className="ml-1 text-xs text-muted-foreground">{unit}</span>
+              </div>
+              <div className="text-right font-mono text-muted-foreground line-through">
+                {fmt(row.official)}
+                <span className="ml-1 text-xs">{unit}</span>
+              </div>
+              <div className="flex items-center justify-end gap-1 font-mono text-xs text-sage">
+                {saving > 0 ? (
+                  <>
+                    <ArrowDownRight className="size-3" />
+                    {saving}%
+                  </>
+                ) : (
+                  <span className="text-muted-foreground">-</span>
+                )}
+              </div>
             </div>
-            <div className="mt-1 text-[11px] text-muted-foreground">
-              官方 ${fmt(officialMin)} 起 · {vendorOf(m)} · {m.rows.length} 个规格
-            </div>
-          </div>
-          {saving > 0 && (
-            <span className="shrink-0 rounded-full bg-sage/10 px-2.5 py-1 text-xs font-medium text-sage">
-              省 {saving.toFixed(0)}%
-            </span>
-          )}
-        </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -125,7 +193,7 @@ function PricingPage() {
       .filter((m) => {
         if (category !== "all" && m.category !== category) return false;
         if (!q) return true;
-        return `${m.id} ${m.name} ${m.alias ?? ""} ${vendorOf(m)}`.toLowerCase().includes(q);
+        return `${m.id} ${m.name} ${m.alias ?? ""} ${vendorOf(m)} ${modelDescription(m)}`.toLowerCase().includes(q);
       })
       .sort((a, b) => {
         const ha = hotModelIds.has(a.id) ? 0 : 1;
@@ -139,7 +207,7 @@ function PricingPage() {
       <PageHeader
         eyebrow="Pricing"
         title="模型单价表"
-        description="按图片、视频、LLM 分类，与模型广场一一对应。每个模型一张卡片，展示起价区间与相对官方价的节省。调用一次扣一次，无月租、无最低消费。"
+        description="按图片、视频、LLM 分类，与模型广场一一对应。每个模型一个清单，展示全部规格、我们的价格、官方价格与节省比例。调用一次扣一次，无月租、无最低消费。"
       />
 
       <Section title="按分类查看全部模型价格" className="pt-0">
@@ -171,12 +239,12 @@ function PricingPage() {
         </div>
 
         <p className="mt-5 text-xs text-muted-foreground">
-          共 {filtered.length} 个模型 · 价格为 USD 起价，实际扣款按实时汇率换算为积分，1 元 ≈ 1,000 积分
+          共 {filtered.length} 个模型 · 价格为 USD，实际扣款按实时汇率换算为积分，1 元 ≈ 1,000 积分
         </p>
 
-        <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-6 flex flex-col gap-5">
           {filtered.map((m) => (
-            <PriceCard key={m.id} m={m} />
+            <PriceTable key={m.id} m={m} />
           ))}
         </div>
 
@@ -189,4 +257,3 @@ function PricingPage() {
     </>
   );
 }
-
